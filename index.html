@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 완전정복 로드맵</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92, 179, 166, 0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92, 179, 166, 0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0, 0, 0, 0.35);
+  }
+
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a { color: var(--accent-strong); }
+
+  .shell { max-width: 1180px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 36px; }
+
+  .eyebrow-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  .repo-link { font-family: var(--font-mono); font-size: 12.5px; color: var(--ink-faint); text-decoration: none; margin-bottom: 10px; }
+  .repo-link:hover { color: var(--accent-strong); }
+
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(30px, 4vw, 42px); line-height: 1.25; margin: 0 0 12px; text-wrap: balance; color: var(--ink); }
+  .subtitle { max-width: 62ch; color: var(--ink-soft); font-size: 16px; margin: 0 0 24px; }
+
+  .howto { display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; font-size: 14.5px; color: var(--ink-soft); max-width: 74ch; }
+  .howto strong { color: var(--ink); }
+
+  .progress-wrap { display: flex; align-items: center; gap: 16px; margin-top: 22px; }
+  .progress-track { flex: 1; height: 8px; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
+  .progress-fill { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width 0.4s ease; }
+  .progress-label { font-family: var(--font-mono); font-size: 13px; color: var(--ink-soft); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+  .layout { display: grid; grid-template-columns: 240px 1fr; gap: 44px; align-items: start; }
+
+  nav.toc { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 2px; }
+  nav.toc a { display: flex; justify-content: space-between; gap: 8px; text-decoration: none; color: var(--ink-soft); font-size: 14px; padding: 8px 10px; border-radius: 7px; border-left: 2px solid transparent; }
+  nav.toc a .n { font-family: var(--font-mono); color: var(--ink-faint); font-size: 12px; }
+  nav.toc a .cnt { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+  nav.toc a:hover { background: var(--surface); color: var(--ink); }
+  nav.toc a.active { background: var(--accent-soft); border-left-color: var(--accent); color: var(--ink); font-weight: 500; }
+
+  main { min-width: 0; }
+
+  section.phase { margin-bottom: 52px; scroll-margin-top: 20px; }
+  .phase-head { display: flex; gap: 16px; align-items: baseline; margin-bottom: 6px; }
+  .phase-num { font-family: var(--font-mono); font-size: 13px; color: var(--accent-strong); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; white-space: nowrap; }
+  h2.phase-title { font-family: var(--font-display); font-size: 23px; font-weight: 700; margin: 0; text-wrap: balance; }
+  .phase-goal { color: var(--ink-soft); font-size: 14.5px; margin: 6px 0 20px; max-width: 68ch; }
+
+  .modules { display: flex; flex-direction: column; gap: 10px; }
+
+  .module { display: flex; gap: 14px; align-items: flex-start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; box-shadow: 0 1px 2px var(--shadow); }
+
+  .module input[type="checkbox"] {
+    appearance: none; -webkit-appearance: none; width: 19px; height: 19px; min-width: 19px; margin-top: 3px;
+    border: 1.5px solid var(--ink-faint); border-radius: 5px; background: var(--surface-raised); cursor: pointer; position: relative;
+  }
+  .module input[type="checkbox"]:checked { background: var(--accent); border-color: var(--accent); }
+  .module input[type="checkbox"]:checked::after {
+    content: ""; position: absolute; left: 5px; top: 1px; width: 5px; height: 10px;
+    border: solid var(--accent-contrast); border-width: 0 2px 2px 0; transform: rotate(40deg);
+  }
+  .module input[type="checkbox"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .module-body { flex: 1; min-width: 0; }
+  .module-title-row { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap; }
+  .module-id { font-family: var(--font-mono); font-size: 12px; color: var(--ink-faint); }
+  .module-title { font-weight: 600; font-size: 15.5px; }
+  .module-title a { color: var(--ink); text-decoration-color: var(--line); }
+  .module-title a:hover { color: var(--accent-strong); text-decoration-color: var(--accent-strong); }
+  .module.done .module-title { color: var(--ink-soft); text-decoration: line-through; text-decoration-color: var(--line); }
+
+  .module-desc { color: var(--ink-soft); font-size: 14px; margin: 4px 0 10px; }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-family: var(--font-mono); font-size: 11.5px; color: var(--accent-strong); background: var(--accent-soft); border-radius: 5px; padding: 3px 8px; white-space: nowrap; }
+  .tag.ready { background: var(--accent); color: var(--accent-contrast); }
+
+  .orientation { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; font-size: 14.5px; color: var(--ink-soft); }
+  .orientation p { margin: 0 0 10px; }
+  .orientation p:last-child { margin-bottom: 0; }
+  .orientation strong { color: var(--ink); }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.toc { position: static; flex-direction: row; overflow-x: auto; gap: 6px; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid var(--line); }
+    nav.toc a { flex-direction: column; gap: 2px; white-space: nowrap; border-left: none; border-bottom: 2px solid transparent; }
+    nav.toc a.active { border-left: none; border-bottom-color: var(--accent); }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="page">
+    <div class="eyebrow-row">
+      <p class="eyebrow">Personal Study Roadmap</p>
+      <a class="repo-link" href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a>
+    </div>
+    <h1 class="title">AI 완전정복 로드맵</h1>
+    <p class="subtitle">개념부터 실무 활용, 서비스 기획, 가벼운 개발 이해까지 — 기획자 관점에서 AI를 A to Z로 훑는 9단계 커리큘럼입니다.</p>
+    <div class="howto">
+      <span>💡</span>
+      <span><strong>사용법</strong> — 순서대로 진행해도 되고, 필요한 phase부터 시작해도 됩니다. 진한 배경의 항목은 <code>lessons/</code> 폴더에 상세 학습 자료가 준비된 것이고, 나머지는 아직 대화로만 다룬 내용입니다. 이해했으면 체크박스를 눌러 진행 상황을 기록하세요 (이 브라우저에만 저장됩니다).</span>
+    </div>
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+      <span class="progress-label" id="progressLabel">0 / 0 완료</span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" id="toc"></nav>
+
+    <main id="main">
+
+      <section class="phase" id="phase-0">
+        <div class="phase-head">
+          <span class="phase-num">0</span>
+          <h2 class="phase-title">시작하기 전에</h2>
+        </div>
+        <div class="orientation">
+          <p>이 로드맵은 <strong>실무자/기획자</strong> 기준으로 짜여 있습니다. 코드를 직접 짜지 않아도 phase 1~5는 끝까지 소화할 수 있고, phase 6은 개발자와 대화가 통할 정도의 "라이트 개발 지식"만 다룹니다.</p>
+          <p>각 phase는 이전 phase를 전제로 쌓이지만, 이미 아는 내용이 있다면 건너뛰고 바로 다음으로 가도 괜찮습니다. 막히는 용어가 나오면 그 자리에서 바로 물어보세요.</p>
+        </div>
+      </section>
+
+      <section class="phase" id="phase-1">
+        <div class="phase-head">
+          <span class="phase-num">1</span>
+          <h2 class="phase-title">AI 기초 체력 다지기</h2>
+        </div>
+        <p class="phase-goal">목표 — AI, 머신러닝, 딥러닝, LLM의 관계와 기본 작동 원리를 내 언어로 설명할 수 있다.</p>
+        <div class="modules">
+          <div class="module"><input type="checkbox" data-id="1-1"><div class="module-body"><div class="module-title-row"><span class="module-id">1-1</span><span class="module-title"><a href="lessons/1-1-ai-ml-dl-llm.html">AI, 머신러닝, 딥러닝, LLM은 뭐가 다른가</a></span></div><p class="module-desc">계층 구조로 정리하는 큰 그림. 이후 모든 용어의 기준점이 됩니다.</p><div class="tags"><span class="tag ready">학습자료 완료</span><span class="tag">AI</span><span class="tag">머신러닝</span><span class="tag">딥러닝</span><span class="tag">LLM 계층구조</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="1-2"><div class="module-body"><div class="module-title-row"><span class="module-id">1-2</span><span class="module-title">LLM은 어떻게 "다음 단어"를 예측하는가</span></div><p class="module-desc">챗봇이 대답을 만들어내는 과정을 토큰 단위로 뜯어봅니다.</p><div class="tags"><span class="tag">토큰</span><span class="tag">확률분포</span><span class="tag">오토리그레시브</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="1-3"><div class="module-body"><div class="module-title-row"><span class="module-id">1-3</span><span class="module-title">학습(training)과 추론(inference)의 차이</span></div><p class="module-desc">모델을 "만드는 것"과 "쓰는 것"이 왜 완전히 다른 단계인지.</p><div class="tags"><span class="tag">사전학습</span><span class="tag">파인튜닝</span><span class="tag">추론비용</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="1-4"><div class="module-body"><div class="module-title-row"><span class="module-id">1-4</span><span class="module-title">실무에서 자주 듣는 필수 용어 정리</span></div><p class="module-desc">파라미터, 임베딩, 컨텍스트 윈도우, temperature 등 회의에서 바로 나오는 단어들.</p><div class="tags"><span class="tag">파라미터</span><span class="tag">임베딩</span><span class="tag">컨텍스트윈도우</span><span class="tag">temperature</span></div></div></div>
+        </div>
+      </section>
+
+      <section class="phase" id="phase-2">
+        <div class="phase-head">
+          <span class="phase-num">2</span>
+          <h2 class="phase-title">LLM 제대로 이해하기</h2>
+        </div>
+        <p class="phase-goal">목표 — 상황에 맞는 모델을 고르고, 결과물의 한계를 스스로 판단할 수 있다.</p>
+        <div class="modules">
+          <div class="module"><input type="checkbox" data-id="2-1"><div class="module-body"><div class="module-title-row"><span class="module-id">2-1</span><span class="module-title">Transformer와 어텐션, 직관적으로 이해하기</span></div><p class="module-desc">수식 없이 "어떤 단어가 어떤 단어를 참고하는가"라는 그림으로 이해합니다.</p><div class="tags"><span class="tag">Self-Attention</span><span class="tag">병렬처리</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="2-2"><div class="module-body"><div class="module-title-row"><span class="module-id">2-2</span><span class="module-title">컨텍스트 윈도우와 토큰 한계가 실무에 미치는 영향</span></div><p class="module-desc">긴 문서를 넣었을 때 왜 앞부분을 "까먹는지", 어떻게 대응하는지.</p><div class="tags"><span class="tag">토큰제한</span><span class="tag">긴문서처리</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="2-3"><div class="module-body"><div class="module-title-row"><span class="module-id">2-3</span><span class="module-title">환각(Hallucination) 이해하고 대응하기</span></div><p class="module-desc">AI가 그럴듯한 거짓말을 만들어내는 이유와 실무 검증 습관.</p><div class="tags"><span class="tag">사실검증</span><span class="tag">출처확인</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="2-4"><div class="module-body"><div class="module-title-row"><span class="module-id">2-4</span><span class="module-title">GPT vs Claude vs Gemini vs 오픈소스 모델 비교</span></div><p class="module-desc">업무 상황별로 어떤 모델을 골라야 하는지 기준을 세웁니다.</p><div class="tags"><span class="tag">모델비교</span><span class="tag">벤치마크</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="2-5"><div class="module-body"><div class="module-title-row"><span class="module-id">2-5</span><span class="module-title">RAG(검색증강생성) 개념</span></div><p class="module-desc">사내 문서·최신 정보를 AI에게 "읽히는" 대표적인 방법.</p><div class="tags"><span class="tag">벡터검색</span><span class="tag">지식주입</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="2-6"><div class="module-body"><div class="module-title-row"><span class="module-id">2-6</span><span class="module-title">멀티모달 AI (이미지·음성·영상)</span></div><p class="module-desc">텍스트를 넘어 이미지와 음성을 다루는 모델들이 하는 일.</p><div class="tags"><span class="tag">Vision</span><span class="tag">TTS/STT</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="2-7"><div class="module-body"><div class="module-title-row"><span class="module-id">2-7</span><span class="module-title">AI 에이전트란 무엇인가</span></div><p class="module-desc">스스로 도구를 쓰고 여러 단계를 실행하는 AI의 개념과 한계.</p><div class="tags"><span class="tag">Tool use</span><span class="tag">자율실행</span></div></div></div>
+        </div>
+      </section>
+
+      <section class="phase" id="phase-3">
+        <div class="phase-head">
+          <span class="phase-num">3</span>
+          <h2 class="phase-title">프롬프트 엔지니어링</h2>
+        </div>
+        <p class="phase-goal">목표 — 원하는 결과를 재현 가능하게 뽑아내는 프롬프트를 설계할 수 있다.</p>
+        <div class="modules">
+          <div class="module"><input type="checkbox" data-id="3-1"><div class="module-body"><div class="module-title-row"><span class="module-id">3-1</span><span class="module-title">좋은 프롬프트의 구조: 역할·맥락·지시·형식</span></div><p class="module-desc">매번 다른 결과가 나오는 이유는 대개 구조가 없기 때문입니다.</p><div class="tags"><span class="tag">Role</span><span class="tag">Context</span><span class="tag">Format</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="3-2"><div class="module-body"><div class="module-title-row"><span class="module-id">3-2</span><span class="module-title">Zero-shot vs Few-shot</span></div><p class="module-desc">예시를 몇 개 보여주는 것만으로 품질이 확 달라지는 이유.</p><div class="tags"><span class="tag">예시제공</span><span class="tag">패턴학습</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="3-3"><div class="module-body"><div class="module-title-row"><span class="module-id">3-3</span><span class="module-title">단계적으로 생각하게 만들기 (Chain-of-Thought)</span></div><p class="module-desc">복잡한 문제일수록 "먼저 생각하고 답하라"고 시켜야 하는 이유.</p><div class="tags"><span class="tag">추론과정</span><span class="tag">단계분해</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="3-4"><div class="module-body"><div class="module-title-row"><span class="module-id">3-4</span><span class="module-title">시스템 프롬프트와 페르소나 설계</span></div><p class="module-desc">대화 내내 유지되는 "성격"과 규칙을 설정하는 법.</p><div class="tags"><span class="tag">System Prompt</span><span class="tag">톤앤매너</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="3-5"><div class="module-body"><div class="module-title-row"><span class="module-id">3-5</span><span class="module-title">반복 개선(Iteration)으로 프롬프트 다듬기</span></div><p class="module-desc">첫 시도로 완성하지 않고, 실패 사례를 모아 고쳐나가는 루틴.</p><div class="tags"><span class="tag">A/B비교</span><span class="tag">디버깅</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="3-6"><div class="module-body"><div class="module-title-row"><span class="module-id">3-6</span><span class="module-title">실전: 기획서·회의록·리서치에 바로 쓰는 프롬프트</span></div><p class="module-desc">지금 하는 업무 문서 그대로 가져와서 연습합니다.</p><div class="tags"><span class="tag">기획서</span><span class="tag">회의록</span><span class="tag">브레인스토밍</span></div></div></div>
+        </div>
+      </section>
+
+      <section class="phase" id="phase-4">
+        <div class="phase-head">
+          <span class="phase-num">4</span>
+          <h2 class="phase-title">실무 도구 활용 (기획자·UX 관점)</h2>
+        </div>
+        <p class="phase-goal">목표 — 매일 업무에서 AI를 도구로 자연스럽게 쓸 수 있다.</p>
+        <div class="modules">
+          <div class="module"><input type="checkbox" data-id="4-1"><div class="module-body"><div class="module-title-row"><span class="module-id">4-1</span><span class="module-title">AI로 요구사항정의서·기획서 초안 잡기</span></div><p class="module-desc">백지에서 시작하지 않고 AI가 만든 초안을 다듬는 흐름으로 전환.</p><div class="tags"><span class="tag">요구사항정의</span><span class="tag">문서초안</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="4-2"><div class="module-body"><div class="module-title-row"><span class="module-id">4-2</span><span class="module-title">AI 기반 UX 리서치와 페르소나 생성</span></div><p class="module-desc">인터뷰 데이터를 요약하고 페르소나 초안을 뽑아내는 법.</p><div class="tags"><span class="tag">사용자리서치</span><span class="tag">페르소나</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="4-3"><div class="module-body"><div class="module-title-row"><span class="module-id">4-3</span><span class="module-title">Figma AI 등으로 와이어프레임 빠르게 만들기</span></div><p class="module-desc">화면설계 초안을 AI로 먼저 뽑고 다듬는 워크플로우.</p><div class="tags"><span class="tag">와이어프레임</span><span class="tag">목업</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="4-4"><div class="module-body"><div class="module-title-row"><span class="module-id">4-4</span><span class="module-title">회의록 자동 요약과 액션아이템 정리</span></div><p class="module-desc">녹취/텍스트를 넣고 결정사항과 할 일만 뽑아내는 프롬프트.</p><div class="tags"><span class="tag">회의록</span><span class="tag">요약</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="4-5"><div class="module-body"><div class="module-title-row"><span class="module-id">4-5</span><span class="module-title">스프레드시트·데이터 분석에 AI 활용</span></div><p class="module-desc">엑셀 데이터를 붙여넣고 바로 인사이트를 뽑는 법.</p><div class="tags"><span class="tag">엑셀</span><span class="tag">데이터분석</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="4-6"><div class="module-body"><div class="module-title-row"><span class="module-id">4-6</span><span class="module-title">업무에 AI 쓸 때 보안·저작권 체크리스트</span></div><p class="module-desc">고객정보·사내자료를 붙여넣기 전에 확인해야 할 것들.</p><div class="tags"><span class="tag">보안</span><span class="tag">저작권</span><span class="tag">사내정책</span></div></div></div>
+        </div>
+      </section>
+
+      <section class="phase" id="phase-5">
+        <div class="phase-head">
+          <span class="phase-num">5</span>
+          <h2 class="phase-title">AI 서비스·제품 기획</h2>
+        </div>
+        <p class="phase-goal">목표 — AI 기능을 실제 제품 요구사항으로 설계하고 검증할 수 있다.</p>
+        <div class="modules">
+          <div class="module"><input type="checkbox" data-id="5-1"><div class="module-body"><div class="module-title-row"><span class="module-id">5-1</span><span class="module-title">AI 기능을 제품에 녹이는 UX 패턴</span></div><p class="module-desc">추천, 자동완성, 대화형 UI 등 대표 패턴과 사용 시점.</p><div class="tags"><span class="tag">AI UX패턴</span><span class="tag">온보딩</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="5-2"><div class="module-body"><div class="module-title-row"><span class="module-id">5-2</span><span class="module-title">AI 기능 기획서: 정상케이스와 실패케이스 정의</span></div><p class="module-desc">AI가 틀렸을 때 사용자가 무엇을 보게 할지까지 기획하는 법.</p><div class="tags"><span class="tag">시나리오</span><span class="tag">예외처리</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="5-3"><div class="module-body"><div class="module-title-row"><span class="module-id">5-3</span><span class="module-title">AI 기능의 성공지표 정의와 측정</span></div><p class="module-desc">정확도만으로는 부족한 이유와, 실무에서 쓰는 품질 지표들.</p><div class="tags"><span class="tag">지표설계</span><span class="tag">품질평가</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="5-4"><div class="module-body"><div class="module-title-row"><span class="module-id">5-4</span><span class="module-title">경쟁 서비스 AI 기능 벤치마킹</span></div><p class="module-desc">타사 AI 기능을 뜯어보고 기획 논리를 역추적하는 법.</p><div class="tags"><span class="tag">벤치마킹</span><span class="tag">사례분석</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="5-5"><div class="module-body"><div class="module-title-row"><span class="module-id">5-5</span><span class="module-title">스마트홈·IoT와 AI 결합 사례 연구</span></div><p class="module-desc">지금 진행 중인 프로젝트와 바로 연결해서 생각해보는 파트.</p><div class="tags"><span class="tag">스마트홈</span><span class="tag">IoT</span></div></div></div>
+        </div>
+      </section>
+
+      <section class="phase" id="phase-6">
+        <div class="phase-head">
+          <span class="phase-num">6</span>
+          <h2 class="phase-title">개발 기초 이해 (라이트 버전)</h2>
+        </div>
+        <p class="phase-goal">목표 — 코드를 직접 짜지 않아도 개발자와 같은 언어로 대화할 수 있다.</p>
+        <div class="modules">
+          <div class="module"><input type="checkbox" data-id="6-1"><div class="module-body"><div class="module-title-row"><span class="module-id">6-1</span><span class="module-title">API란 무엇이고 AI API는 어떻게 호출되는가</span></div><p class="module-desc">"연동"이라는 말이 실제로 어떤 요청-응답을 의미하는지.</p><div class="tags"><span class="tag">API</span><span class="tag">Request/Response</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="6-2"><div class="module-body"><div class="module-title-row"><span class="module-id">6-2</span><span class="module-title">노코드/로코드로 AI 자동화 직접 만들어보기</span></div><p class="module-desc">코딩 없이 "AI + 자동화" 워크플로우를 하나 완성해봅니다.</p><div class="tags"><span class="tag">노코드</span><span class="tag">자동화</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="6-3"><div class="module-body"><div class="module-title-row"><span class="module-id">6-3</span><span class="module-title">벡터DB와 임베딩, 실습으로 감 잡기</span></div><p class="module-desc">RAG의 내부에서 실제로 어떤 데이터가 저장되고 검색되는지.</p><div class="tags"><span class="tag">벡터DB</span><span class="tag">임베딩실습</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="6-4"><div class="module-body"><div class="module-title-row"><span class="module-id">6-4</span><span class="module-title">파인튜닝이란 무엇이고 언제 필요한가</span></div><p class="module-desc">프롬프트로 충분한 경우와 파인튜닝이 필요한 경우의 경계선.</p><div class="tags"><span class="tag">파인튜닝</span><span class="tag">커스터마이징</span></div></div></div>
+        </div>
+      </section>
+
+      <section class="phase" id="phase-7">
+        <div class="phase-head">
+          <span class="phase-num">7</span>
+          <h2 class="phase-title">트렌드, 윤리, 리스크</h2>
+        </div>
+        <p class="phase-goal">목표 — AI를 둘러싼 변화와 위험을 균형 있게 판단할 수 있다.</p>
+        <div class="modules">
+          <div class="module"><input type="checkbox" data-id="7-1"><div class="module-body"><div class="module-title-row"><span class="module-id">7-1</span><span class="module-title">최신 트렌드: 에이전틱 AI, 온디바이스 AI</span></div><p class="module-desc">지금 업계에서 가장 많이 언급되는 두 가지 방향.</p><div class="tags"><span class="tag">에이전틱AI</span><span class="tag">온디바이스</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="7-2"><div class="module-body"><div class="module-title-row"><span class="module-id">7-2</span><span class="module-title">AI 윤리와 편향 문제</span></div><p class="module-desc">데이터가 만드는 편향이 제품에 어떻게 스며드는지.</p><div class="tags"><span class="tag">편향</span><span class="tag">공정성</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="7-3"><div class="module-body"><div class="module-title-row"><span class="module-id">7-3</span><span class="module-title">저작권과 법적 이슈</span></div><p class="module-desc">학습 데이터, 생성물 저작권을 둘러싼 현재의 논쟁 지형.</p><div class="tags"><span class="tag">저작권</span><span class="tag">규제</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="7-4"><div class="module-body"><div class="module-title-row"><span class="module-id">7-4</span><span class="module-title">프라이버시와 보안 리스크</span></div><p class="module-desc">개인정보가 프롬프트를 통해 새어나가는 대표 시나리오들.</p><div class="tags"><span class="tag">개인정보</span><span class="tag">보안</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="7-5"><div class="module-body"><div class="module-title-row"><span class="module-id">7-5</span><span class="module-title">조직에 AI 도입할 때의 변화관리</span></div><p class="module-desc">도구 도입보다 어려운, 사람과 프로세스를 바꾸는 문제.</p><div class="tags"><span class="tag">변화관리</span><span class="tag">조직문화</span></div></div></div>
+        </div>
+      </section>
+
+      <section class="phase" id="phase-8">
+        <div class="phase-head">
+          <span class="phase-num">8</span>
+          <h2 class="phase-title">다음 단계</h2>
+        </div>
+        <p class="phase-goal">목표 — 배운 것을 실전 프로젝트로 연결한다.</p>
+        <div class="modules">
+          <div class="module"><input type="checkbox" data-id="8-1"><div class="module-body"><div class="module-title-row"><span class="module-id">8-1</span><span class="module-title">나만의 미니 프로젝트 기획해보기</span></div><p class="module-desc">지금까지 배운 걸 하나로 묶어 작은 결과물을 만들어봅니다.</p><div class="tags"><span class="tag">사이드프로젝트</span></div></div></div>
+          <div class="module"><input type="checkbox" data-id="8-2"><div class="module-body"><div class="module-title-row"><span class="module-id">8-2</span><span class="module-title">꾸준히 학습을 이어가는 방법</span></div><p class="module-desc">변화가 빠른 분야에서 뒤처지지 않고 따라가는 습관 만들기.</p><div class="tags"><span class="tag">지속학습</span><span class="tag">커뮤니티</span></div></div></div>
+        </div>
+      </section>
+
+      <footer class="page">진행 상황은 이 브라우저(로컬)에만 저장됩니다 · <a href="https://github.com/webyigit/AI.Study">AI.Study</a></footer>
+    </main>
+  </div>
+</div>
+
+<script>
+(function () {
+  var STORE_KEY = 'ai-curriculum-progress-v1';
+
+  function loadState() {
+    try { return JSON.parse(localStorage.getItem(STORE_KEY)) || {}; } catch (e) { return {}; }
+  }
+  function saveState(state) {
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  var state = loadState();
+  var checkboxes = Array.prototype.slice.call(document.querySelectorAll('.module input[type="checkbox"]'));
+  var phases = Array.prototype.slice.call(document.querySelectorAll('section.phase'));
+  var progressFill = document.getElementById('progressFill');
+  var progressLabel = document.getElementById('progressLabel');
+  var toc = document.getElementById('toc');
+
+  checkboxes.forEach(function (cb) {
+    var id = cb.getAttribute('data-id');
+    if (state[id]) {
+      cb.checked = true;
+      cb.closest('.module').classList.add('done');
+    }
+    cb.addEventListener('change', function () {
+      state[id] = cb.checked;
+      saveState(state);
+      cb.closest('.module').classList.toggle('done', cb.checked);
+      updateProgress();
+    });
+  });
+
+  function phaseStats(section) {
+    var boxes = section.querySelectorAll('input[type="checkbox"]');
+    var total = boxes.length;
+    var done = 0;
+    boxes.forEach(function (b) { if (b.checked) done++; });
+    return { total: total, done: done };
+  }
+
+  function updateProgress() {
+    var total = checkboxes.length;
+    var done = checkboxes.filter(function (c) { return c.checked; }).length;
+    var pct = total ? Math.round((done / total) * 100) : 0;
+    progressFill.style.width = pct + '%';
+    progressLabel.textContent = done + ' / ' + total + ' 완료 (' + pct + '%)';
+
+    phases.forEach(function (section) {
+      var link = toc.querySelector('a[href="#' + section.id + '"]');
+      if (!link) return;
+      var stats = phaseStats(section);
+      var cntEl = link.querySelector('.cnt');
+      if (cntEl) cntEl.textContent = stats.total ? stats.done + '/' + stats.total : '—';
+    });
+  }
+
+  phases.forEach(function (section) {
+    var titleEl = section.querySelector('.phase-title');
+    var numEl = section.querySelector('.phase-num');
+    if (!titleEl) return;
+    var a = document.createElement('a');
+    a.href = '#' + section.id;
+    var nSpan = document.createElement('span');
+    nSpan.className = 'n';
+    nSpan.textContent = (numEl ? numEl.textContent : '');
+    var titleSpan = document.createElement('span');
+    titleSpan.style.flex = '1';
+    titleSpan.style.marginLeft = '6px';
+    titleSpan.style.marginRight = '6px';
+    titleSpan.textContent = titleEl.textContent;
+    var cntSpan = document.createElement('span');
+    cntSpan.className = 'cnt';
+    var wrap = document.createElement('span');
+    wrap.style.display = 'flex';
+    wrap.style.alignItems = 'baseline';
+    wrap.style.flex = '1';
+    wrap.appendChild(nSpan);
+    wrap.appendChild(titleSpan);
+    a.appendChild(wrap);
+    a.appendChild(cntSpan);
+    toc.appendChild(a);
+  });
+
+  updateProgress();
+
+  var tocLinks = Array.prototype.slice.call(toc.querySelectorAll('a'));
+  var observer = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      var link = toc.querySelector('a[href="#' + entry.target.id + '"]');
+      if (!link) return;
+      if (entry.isIntersecting) {
+        tocLinks.forEach(function (l) { l.classList.remove('active'); });
+        link.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+  phases.forEach(function (s) { observer.observe(s); });
+})();
+</script>
+</body>
+</html>
