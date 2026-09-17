@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4-3. Figma AI 등으로 와이어프레임 빠르게 만들기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="4-3">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 4 · 실무 도구 활용</p>
+    <p class="eyebrow">Module 4-3</p>
+    <h1 class="title">Figma AI 등으로 와이어프레임 빠르게 만들기</h1>
+    <p class="subtitle">디자이너가 아니어도, AI의 도움을 받아 <a class="term" href="#term-wireframe">와이어프레임</a>과 <a class="term" href="#term-mockup">목업</a> 초안을 직접 그려서 논의를 시작할 수 있습니다. 어디까지가 기획자의 영역이고, 어디부터 디자이너에게 넘겨야 하는지도 함께 짚습니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">"말로는 설명했는데 디자이너가 이해를 다르게 했다" — 기획자라면 한 번쯤 겪는 상황입니다. 예전에는 이 간극을 줄이려고 손그림이나 파워포인트 도형으로 초벌 화면을 그렸지만, 지금은 AI에게 화면 설명을 텍스트로 던지면 몇 초 만에 초안 와이어프레임이 나옵니다. 그림 실력이 없어도, "이런 흐름으로 화면이 이어졌으면 좋겠다"는 생각을 빠르게 눈에 보이는 형태로 옮길 수 있게 된 것입니다.</p>
+
+    <h2 id="sec-why-wireframe">1) 왜 기획자가 직접 와이어프레임을 그려보는가</h2>
+    <p>와이어프레임을 그리는 목적은 "예쁜 화면"이 아니라 "화면에 뭐가 있어야 하는지, 순서는 어떻게 되는지"를 미리 점검하는 것입니다. 글로만 쓴 요구사항정의서는 놓치는 부분이 많습니다. 예를 들어 "반려동물 모니터링 알림을 보여준다"는 문장은 화면으로 그려보기 전까지는, 알림이 홈 화면 상단에 뜨는지, 별도 탭인지, 푸시로만 오는지가 불명확합니다.</p>
+    <div class="example-box"><strong>홈닉 예시</strong> — "외출 중 반려동물 모니터링" 요구사항을 AI로 와이어프레임화해보면, "카메라 화면과 온도·습도 정보를 한 화면에 같이 둘지, 탭으로 분리할지"처럼 텍스트만으로는 안 보이던 질문이 바로 튀어나옵니다. 이게 와이어프레임을 먼저 그려보는 실질적 이유입니다.</p></div>
+
+    <h2 id="sec-tools">2) AI 와이어프레임 도구, 크게 두 갈래</h2>
+    <p>요즘 나오는 AI 와이어프레임 도구는 대체로 두 가지 방식 중 하나입니다.</p>
+    <table class="summary">
+      <thead><tr><th>방식</th><th>설명</th><th>홈닉 활용 예</th></tr></thead>
+      <tbody>
+        <tr><td>텍스트 → 화면</td><td>"이런 화면이 필요해"라고 문장으로 설명하면 AI가 레이아웃을 그려줌 (Figma AI, Uizard 등)</td><td>"외출 모드 설정 화면, 상단에 기기 목록, 하단에 저장 버튼"이라고 입력</td></tr>
+        <tr><td>경쟁사 화면 → 구조 변환</td><td>경쟁 서비스 화면 캡처를 업로드하면 구조만 뽑아 와이어프레임으로 변환</td><td>다른 스마트홈 앱의 알림 화면을 업로드해 레이아웃만 참고</td></tr>
+      </tbody>
+    </table>
+    <p>Figma 안에서는 플러그인 형태로 AI 와이어프레임 생성 기능을 쓸 수 있는 경우가 많아, 디자이너가 없는 상태에서도 기획자가 직접 Figma 파일 안에 초안을 만들어 넣을 수 있습니다.</p>
+
+    <h2 id="sec-workflow">3) 실전 워크플로 — 초안부터 디자이너 전달까지</h2>
+    <p>AI 와이어프레임 도구를 쓸 때는 아래 순서로 진행하는 것이 효율적입니다.</p>
+    <table class="summary">
+      <thead><tr><th>단계</th><th>할 일</th></tr></thead>
+      <tbody>
+        <tr><td>1. 화면 목록 정리</td><td>요구사항정의서의 "핵심 기능" 표를 바탕으로 필요한 화면을 목록화</td></tr>
+        <tr><td>2. 화면별 텍스트 설명</td><td>각 화면에 어떤 요소가 있어야 하는지 한두 문장으로 정리해 AI에 입력</td></tr>
+        <tr><td>3. AI 초안 생성</td><td>화면별로 초안을 만들고, 화면 간 이동(플로우)이 말이 되는지 확인</td></tr>
+        <tr><td>4. 사람이 다듬기</td><td>정보 우선순위, 실제 데이터가 들어갈 자리, 예외 상황(빈 상태 등) 보완</td></tr>
+        <tr><td>5. 디자이너에게 전달</td><td>"완성본"이 아니라 "의도를 전달하는 스케치"라고 명확히 하고 공유</td></tr>
+      </tbody>
+    </table>
+    <div class="example-box"><strong>프롬프트 예시</strong><br>"모바일 앱 화면을 만들어줘. 화면명: 외출 모드 설정. 구성: 상단에 뒤로가기와 제목, 중앙에 등록된 기기 목록(카메라·조명·온도조절기), 각 기기 옆에 켬/끔 토글, 하단 고정 버튼 '외출 모드 시작'. 톤: 여백 넓고 단순하게, 저해상도 와이어프레임 스타일로."</div>
+
+    <h2 id="sec-limits">4) AI가 못 채워주는 것들</h2>
+    <p>AI 와이어프레임은 "레이아웃을 빠르게 잡는 것"에는 강하지만, 아래 판단은 여전히 사람의 몫입니다.</p>
+    <table class="summary">
+      <thead><tr><th>영역</th><th>이유</th></tr></thead>
+      <tbody>
+        <tr><td>정보 우선순위</td><td>어떤 정보를 화면 상단에 둘지는 사용자 리서치와 비즈니스 목표에 대한 판단이 필요</td></tr>
+        <tr><td>예외 상황 설계</td><td>기기가 하나도 없을 때, 네트워크 연결이 끊겼을 때 같은 '빈 상태'는 AI가 놓치기 쉬움</td></tr>
+        <tr><td>실제 디자인 시스템 반영</td><td>회사 고유의 컴포넌트·톤앤매너는 AI 초안에 자동 반영되지 않음</td></tr>
+        <tr><td>접근성 검토</td><td>텍스트 크기, 터치 영역 크기 같은 접근성 기준은 별도로 점검 필요</td></tr>
+      </tbody>
+    </table>
+    <p>즉, AI 와이어프레임의 실질적 가치는 "디자이너 없이도 논의를 시작할 수 있는 첫 초안을 몇 분 만에 만드는 것"이며, 이후 다듬는 과정과 최종 디자인은 여전히 사람(그리고 전문 디자이너)의 영역입니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>구분</th><th>핵심</th></tr></thead>
+      <tbody>
+        <tr><td>와이어프레임을 그리는 이유</td><td>글로 된 요구사항이 놓치는 화면 순서·구성 문제를 미리 발견</td></tr>
+        <tr><td>AI가 잘하는 일</td><td>텍스트 설명만으로 저해상도 화면 초안을 몇 초 만에 생성</td></tr>
+        <tr><td>AI가 못 하는 일</td><td>정보 우선순위, 예외 상황, 디자인 시스템 반영, 접근성 판단</td></tr>
+        <tr><td>실무 원칙</td><td>AI 초안은 "완성본"이 아니라 "논의 시작점"으로 취급하고 디자이너에게 넘길 때 명시</td></tr>
+      </tbody>
+    </table>
+
+    <div class="check-in"><strong>이해 확인</strong> — "AI 와이어프레임 초안을 디자이너에게 '완성본'처럼 전달하면 안 되는 이유"를 스스로 한 문장으로 말해보세요. 다음 모듈(4-4. 회의록 자동 요약과 액션아이템 정리)에서는 이 초안을 논의한 회의를 정리하는 방법을 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-wireframe">
+      <div class="glossary-entry-head"><h3>와이어프레임 (Wireframe)</h3><a class="back-link" href="#sec-why-wireframe">↑ 본문으로</a></div>
+      <p>화면에 어떤 요소가 어떤 순서·위치로 배치되는지를 선과 도형만으로 단순하게 그린 초안입니다. 색상이나 폰트 같은 디테일보다 "정보 구조와 화면 흐름"에 집중하며, 기획자·디자이너·개발자가 공통으로 이해하는 초기 논의 자료로 쓰입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-mockup">
+      <div class="glossary-entry-head"><h3>목업 (Mockup)</h3><a class="back-link" href="#body">↑ 본문으로</a></div>
+      <p>와이어프레임보다 한 단계 더 완성도를 높여, 실제 색상·폰트·이미지를 적용한 화면 시안을 말합니다. 와이어프레임이 "구조"를 검증하는 단계라면, 목업은 "실제로 어떻게 보일지"를 검증하는 단계로, 보통 와이어프레임에 대한 합의 이후에 디자이너가 작업합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-low-fidelity">
+      <div class="glossary-entry-head"><h3>로우 피델리티 (Low-Fidelity)</h3><a class="back-link" href="#sec-tools">↑ 본문으로</a></div>
+      <p>디테일을 최소화하고 뼈대만 빠르게 표현한 디자인 완성도 수준을 말합니다. 색상·이미지 없이 회색 박스와 선으로만 구성되는 경우가 많으며, AI 와이어프레임 도구가 기본적으로 생성하는 결과물 대부분이 이 수준에 해당합니다. 반대말은 실제에 가까운 완성도의 '하이 피델리티(High-Fidelity)'입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-user-flow">
+      <div class="glossary-entry-head"><h3>사용자 플로우 (User Flow)</h3><a class="back-link" href="#sec-workflow">↑ 본문으로</a></div>
+      <p>사용자가 특정 목표를 달성하기 위해 화면과 화면 사이를 이동하는 경로를 말합니다. 개별 화면 와이어프레임이 잘 그려졌어도, 화면 간 이동 순서가 자연스럽지 않으면 실제 사용성에 문제가 생기므로, 와이어프레임을 이어 붙여 전체 흐름을 점검하는 과정이 중요합니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://maily.so/tipster/posts/mjz65x6lrwk" target="_blank" rel="noopener">AI를 활용해 만드는 와이어프레임은 어떤 모습일까?</a><span class="src-domain">maily.so</span></li>
+          <li><a href="https://www.figma.com/wireframe-tool/" target="_blank" rel="noopener">팀을 위한 무료 온라인 와이어프레임 도구</a><span class="src-domain">figma.com</span></li>
+          <li><a href="https://velog.io/@dyeongg/%ED%94%84%EB%A1%A0%ED%8A%B8%EC%97%94%EB%93%9C-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8%EC%9D%98-%EC%8B%9C%EC%9E%91-Figma%EB%A1%9C-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84-%EB%A7%8C%EB%93%A4%EA%B8%B0%EC%99%80-%ED%99%9C%EC%9A%A9%EB%B2%95" target="_blank" rel="noopener">Figma로 와이어프레임 만들기와 활용법</a><span class="src-domain">velog.io</span></li>
+          <li><a href="https://www.figma.com/resource-library/what-is-wireframing/" target="_blank" rel="noopener">와이어프레임 제작이란 무엇인가요? 완벽한 가이드</a><span class="src-domain">figma.com</span></li>
+          <li><a href="https://uxpilot.ai/ai-wireframe-generator" target="_blank" rel="noopener">무료 AI 와이어프레임 생성기</a><span class="src-domain">uxpilot.ai</span></li>
+          <li><a href="https://huddling.ai/entry/225fdea8-0034-80b4-b69c-e5a7fc6b3209" target="_blank" rel="noopener">피그마 필요한 부분만 쏙쏙! 바로 쓰는 와이어프레임</a><span class="src-domain">huddling.ai</span></li>
+          <li><a href="https://www.figmapedia.com/210fdea8-0034-80b9-976c-edab4d82960f" target="_blank" rel="noopener">UI이미지로 와이어프레임 생성하는 방법</a><span class="src-domain">figmapedia.com</span></li>
+          <li><a href="https://miro.com/ko/ai/wireframe/" target="_blank" rel="noopener">AI 와이어프레임 생성기 | Miro</a><span class="src-domain">miro.com</span></li>
+          <li><a href="https://www.elancer.co.kr/blog/detail/755" target="_blank" rel="noopener">와이어프레임 작성법: 10년차 기획자의 실전 노하우</a><span class="src-domain">elancer.co.kr</span></li>
+          <li><a href="https://www.mfitlab.com/solutions/blog/wireframe" target="_blank" rel="noopener">와이어프레임이란? 잘 만든 와이어프레임 vs. 오해 부르는 와이어프레임</a><span class="src-domain">mfitlab.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.figma.com/resource-library/ai-product-design/" target="_blank" rel="noopener">5 of the Best AI Product Design Tools</a><span class="src-domain">figma.com</span></li>
+          <li><a href="https://animaapp.com/blog/ai-design-en/wireframe-tools/" target="_blank" rel="noopener">Wireframing Software: 7 Best AI Wireframing Tools</a><span class="src-domain">animaapp.com</span></li>
+          <li><a href="https://figr.design/blog/ai-wireframe-generator" target="_blank" rel="noopener">AI Wireframe Generators: 8 Tools for Layouts in Seconds</a><span class="src-domain">figr.design</span></li>
+          <li><a href="https://www.builder.io/blog/ai-figma" target="_blank" rel="noopener">Generate Figma Designs with AI</a><span class="src-domain">builder.io</span></li>
+          <li><a href="https://www.figma.com/community/plugin/1228969298040149016/wireframe-designer" target="_blank" rel="noopener">Wireframe Designer | Figma Community Plugin</a><span class="src-domain">figma.com</span></li>
+          <li><a href="https://adamfard.com/blog/generate-wireframes-ai-figma" target="_blank" rel="noopener">Generate Wireframes in Figma with UX Pilot AI</a><span class="src-domain">adamfard.com</span></li>
+          <li><a href="https://rohitverma141.medium.com/create-wireframes-in-seconds-using-wiregen-figma-plugin-32efee040d4f" target="_blank" rel="noopener">Create Wireframes in Seconds Using WireGen Figma Plugin</a><span class="src-domain">rohitverma141.medium.com</span></li>
+          <li><a href="https://dev.to/shtefcs/how-ai-is-transforming-wireframing-and-prototyping-4pc9" target="_blank" rel="noopener">How AI Is Transforming Wireframing and Prototyping</a><span class="src-domain">dev.to</span></li>
+          <li><a href="https://manus.im/tools/ai-wireframe-generator" target="_blank" rel="noopener">AI Wireframe Generator</a><span class="src-domain">manus.im</span></li>
+          <li><a href="https://uizard.io/blog/guide-to-ai-wireframing/" target="_blank" rel="noopener">A Guide To AI Wireframing</a><span class="src-domain">uizard.io</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 4-3 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

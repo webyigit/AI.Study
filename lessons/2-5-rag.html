@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2-5. RAG(검색증강생성) 개념</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="2-5">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 2 · LLM 제대로 이해하기</p>
+    <p class="eyebrow">Module 2-5</p>
+    <h1 class="title">RAG(검색증강생성) 개념</h1>
+    <p class="subtitle">모델이 외운 것만 답하는 대신, 먼저 진짜 문서를 찾아본 다음 그걸 근거로 답하게 만드는 방법을 이해합니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">2-2 모듈에서 컨텍스트 윈도우가 제한적이라서 긴 문서를 통째로 넣으면 모델이 앞부분을 "잊어버릴" 수 있다는 걸 봤고, 2-3 모듈에서는 모델이 모르는 걸 그럴듯하게 지어내는 환각(hallucination) 문제를 봤습니다. <strong>RAG(Retrieval-Augmented Generation, 검색증강생성)</strong>는 이 두 문제를 동시에 완화하는, 실무에서 가장 널리 쓰이는 해법입니다.</p>
+
+    <h2 id="sec-core">1) RAG의 핵심 아이디어 — 먼저 찾고, 그다음 답한다</h2>
+    <p>LLM은 학습할 때 본 내용만 "기억"으로 가지고 있습니다. 회사 내부 문서, 어제 업데이트된 정책, 애초에 학습 데이터에 없던 정보는 모델이 알 수가 없습니다. 그렇다고 모델을 매번 다시 학습시키는 건 시간과 비용이 너무 큽니다.</p>
+    <p>RAG는 이 문제를 아주 실용적으로 풉니다. 사용자의 질문이 들어오면, 모델이 곧바로 답하게 하지 않고 <strong>먼저 외부 <a class="term" href="#term-kb">지식베이스</a>(회사 문서, 제품 매뉴얼, 위키 등)에서 질문과 관련된 내용을 검색</strong>합니다. 그렇게 찾아낸 관련 텍스트 조각(문서 일부)을 프롬프트 안에 <a class="term" href="#term-injection">지식주입</a> 방식으로 끼워 넣은 다음, "이 내용을 참고해서 답해줘"라는 형태로 모델에게 넘깁니다. 모델은 자기 기억이 아니라 방금 받은 실제 문서를 근거로 답을 만들어냅니다.</p>
+    <p>즉 RAG는 새로운 종류의 모델이 아니라, <strong>검색(Retrieval) + 프롬프트 삽입(Augmented) + 생성(Generation)</strong>이라는 세 단계를 연결한 하나의 시스템 구조입니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 640 200" width="640" height="200" role="img" aria-label="질문에서 검색, 관련 문서 조각 확보, 프롬프트 삽입을 거쳐 LLM 답변에 이르는 RAG 처리 흐름 다이어그램">
+        <defs>
+          <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="var(--ink-faint)"/>
+          </marker>
+        </defs>
+        <g font-family="'IBM Plex Sans KR', sans-serif">
+          <rect x="10" y="70" width="108" height="60" rx="10" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+          <text x="64" y="95" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">질문</text>
+          <text x="64" y="112" text-anchor="middle" font-size="10.5" fill="var(--ink-faint)">사용자 입력</text>
+
+          <line x1="118" y1="100" x2="150" y2="100" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <rect x="150" y="70" width="108" height="60" rx="10" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+          <text x="204" y="95" text-anchor="middle" font-size="12.5" font-weight="600" fill="var(--ink)">검색</text>
+          <text x="204" y="112" text-anchor="middle" font-size="10.5" fill="var(--ink-faint)">지식베이스 조회</text>
+
+          <line x1="258" y1="100" x2="290" y2="100" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <rect x="290" y="70" width="120" height="60" rx="10" fill="var(--accent-soft)" stroke="var(--line)" stroke-width="1.5"/>
+          <text x="350" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="var(--accent-strong)">관련 문서 조각</text>
+          <text x="350" y="112" text-anchor="middle" font-size="10.5" fill="var(--ink-faint)">가장 유사한 부분</text>
+
+          <line x1="410" y1="100" x2="442" y2="100" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <rect x="442" y="70" width="112" height="60" rx="10" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+          <text x="498" y="95" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">프롬프트에 삽입</text>
+          <text x="498" y="112" text-anchor="middle" font-size="10.5" fill="var(--ink-faint)">질문 + 문서</text>
+
+          <line x1="554" y1="100" x2="586" y2="100" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+          <rect x="586" y="60" width="46" height="80" rx="10" fill="var(--accent)" stroke="var(--accent-strong)" stroke-width="1.5"/>
+          <text x="609" y="95" text-anchor="middle" font-size="11.5" font-weight="700" fill="var(--accent-contrast)">LLM</text>
+          <text x="609" y="112" text-anchor="middle" font-size="10" font-weight="700" fill="var(--accent-contrast)">답변</text>
+        </g>
+      </svg>
+    </div>
+
+    <h2 id="sec-example">2) 예시로 보기 — 사내 정책 챗봇</h2>
+    <p>기획자가 흔히 스코프를 잡게 되는 "사내 정책 챗봇"을 예로 들어보겠습니다. 목적은 직원이 자연어로 질문하면 회사의 실제 규정 문서를 근거로 답해주는 것입니다.</p>
+    <div class="example-box">
+      <strong>예시 — 재택근무 규정 질문</strong>
+      <p style="margin:10px 0 0;">① 직원이 챗봇에 "우리 회사 재택근무 규정이 어떻게 되나요?"라고 묻습니다.<br>
+      ② 시스템은 이 질문으로 회사의 HR 정책 문서 전체(수백 페이지일 수도 있음)를 검색해, "재택근무"와 의미적으로 가장 관련 있는 문단 한두 개를 찾아냅니다.<br>
+      ③ 찾은 문단("주 2회까지 재택 가능, 팀장 사전 승인 필요, 코어타임 10시~16시…")을 질문과 함께 프롬프트에 끼워 넣습니다.<br>
+      ④ 모델은 "다음 문서를 참고해서 답변하라"는 지시와 함께 이 문단을 받아, 그 내용을 바탕으로 "귀사는 주 2회까지 재택근무가 가능하며, 사전에 팀장 승인이 필요합니다…"라고 답합니다.</p>
+      <p style="margin:10px 0 0;">모델이 재택근무 규정을 "외워서" 답한 게 아니라, 방금 검색해서 받은 실제 문단을 그대로 근거 삼아 답했다는 점이 핵심입니다. 문서가 개정되면 검색 결과도 자동으로 최신 문단으로 바뀌므로, 모델을 다시 학습시킬 필요가 없습니다.</p>
+    </div>
+
+    <h2 id="sec-context">3) 왜 컨텍스트 윈도우 문제를 완화하는가</h2>
+    <p>2-2 모듈에서 컨텍스트 윈도우가 유한해서, 문서 전체를 프롬프트에 다 넣으면 뒷부분에서 앞부분을 잊어버리는 문제를 다뤘습니다. RAG는 이 문제를 "애초에 다 넣지 않는" 방식으로 우회합니다. 지식베이스 전체를 프롬프트에 밀어 넣는 게 아니라, <strong>질문과 관련된 아주 일부 조각만 골라서</strong> 넣기 때문에, 지식베이스가 수만 페이지여도 실제로 모델에게 전달되는 양은 몇 문단 수준으로 작게 유지됩니다.</p>
+    <p>또한 지식베이스 자체가 학습 데이터로 들어간 게 아니라 검색 대상으로만 존재하기 때문에, 모델의 학습 시점(training cutoff) 이후에 생긴 정보나, 애초에 공개된 적 없는 회사 내부 정보처럼 <strong>모델이 훈련 때 한 번도 본 적 없는 내용</strong>도 문제없이 답변에 활용할 수 있습니다.</p>
+
+    <h2 id="sec-hallucination">4) 왜 환각(hallucination)을 줄이는가</h2>
+    <p>2-3 모듈에서 모델이 모르는 걸 그럴듯하게 지어내는 환각 문제를 다뤘습니다. 환각은 모델이 자기 기억 속 흐릿한 연관관계에만 의존해 답을 "생성"할 때 자주 일어납니다. RAG는 답변을 만들기 전에 실제 문서 조각을 먼저 제시하고 "이걸 근거로 답하라"고 제한하기 때문에, 모델이 순전히 기억에 의존해 없는 내용을 지어낼 여지가 줄어듭니다.</p>
+    <p>다만 RAG가 환각을 완전히 없애주는 건 아닙니다. 검색이 엉뚱한 문서를 가져오거나, 여러 문서 내용이 서로 충돌하면 모델이 그 안에서도 틀린 결론을 낼 수 있습니다. 그래서 "RAG를 쓰면 환각이 줄어든다"이지 "환각이 사라진다"는 아닙니다.</p>
+
+    <h2 id="sec-search">5) "검색"은 어떤 검색인가 — 개념만 짚고 넘어가기</h2>
+    <p>여기서 말하는 검색은 우리가 익숙한 키워드 검색(단어가 정확히 일치해야 찾아지는 방식)과는 다릅니다. RAG의 검색은 보통 <a class="term" href="#term-vector-search">벡터검색</a>이라는 방식을 씁니다. 아주 간단히 말하면, 문장을 정확히 똑같은 단어로 쓰지 않아도 <strong>의미가 비슷하면</strong> 찾아지는 검색입니다. "재택근무 규정"이라고 묻든 "집에서 일할 수 있나요"라고 묻든, 같은 문단을 찾아낼 수 있는 식입니다.</p>
+    <p>이 벡터검색이 내부적으로 어떻게 동작하는지(문장을 숫자 벡터로 바꾸고, 그 벡터들 사이의 거리를 계산하는 방식 등)는 이번 모듈에서 다루지 않습니다. 그 기술적인 메커니즘, 즉 벡터 데이터베이스가 실제로 어떻게 구현되는지는 <strong>Module 6-3</strong>에서 훨씬 깊이 있게 다룰 예정입니다. 지금은 "질문의 의미와 비슷한 문서 조각을 찾아서 → 프롬프트에 넣고 → 그다음 답하게 한다"는 큰 그림만 기억하면 충분합니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>개념</th><th>한 줄 정의</th></tr></thead>
+      <tbody>
+        <tr><td>RAG</td><td>답변 전에 관련 문서를 먼저 검색해 프롬프트에 넣고, 그걸 근거로 모델이 답하게 하는 구조</td></tr>
+        <tr><td><a class="term" href="#term-kb">지식베이스</a></td><td>검색 대상이 되는 회사 문서·매뉴얼·위키 등의 원본 자료 모음</td></tr>
+        <tr><td><a class="term" href="#term-vector-search">벡터검색</a></td><td>단어 일치가 아니라 의미 유사도로 관련 문서를 찾는 검색 방식</td></tr>
+        <tr><td><a class="term" href="#term-injection">지식주입</a></td><td>검색해온 문서 조각을 프롬프트 안에 끼워 넣는 것</td></tr>
+      </tbody>
+    </table>
+    <p>RAG는 결국 "모델을 다시 학습시키는 대신, 모델이 답하기 직전에 필요한 정보를 손에 쥐여주는" 접근입니다. 컨텍스트 윈도우는 여전히 유한하지만 꼭 필요한 조각만 골라 넣으면 되고, 환각은 완전히 사라지진 않지만 실제 문서에 근거를 두는 만큼 훨씬 줄어듭니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 위 사내 정책 챗봇 예시를 "질문 → 검색 → 관련 문서 조각 → 프롬프트에 삽입 → LLM 답변" 다섯 단계로 스스로 말해보세요. 다음 모듈(2-6. 멀티모달 AI — 이미지를 보고 소리를 듣고 말하는 모델)에서는 텍스트를 넘어 비전·TTS·STT까지 다루는 모델을 살펴봅니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-vector-search">
+      <div class="glossary-entry-head"><h3>벡터검색 (Vector Search)</h3><a class="back-link" href="#sec-search">↑ 본문으로</a></div>
+      <p>단어가 정확히 일치하는지를 보는 키워드 검색과 달리, 문장이나 단어의 "의미"를 숫자로 표현한 벡터로 바꾼 뒤 그 벡터들 사이의 유사도를 계산해서 의미적으로 가까운 내용을 찾아내는 검색 방식입니다. 질문에 쓰인 단어가 문서와 정확히 같지 않아도, 뜻이 비슷하면 찾아진다는 점이 키워드 검색과 가장 다릅니다. 실제로 벡터를 어떻게 만들고 어떻게 빠르게 비교하는지(임베딩, 벡터 데이터베이스 등)의 기술적 세부사항은 Module 6-3에서 다룹니다. 여기서는 "의미 기준으로 찾는 검색"이라는 개념만 알면 충분합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-injection">
+      <div class="glossary-entry-head"><h3>지식주입 (Knowledge Injection)</h3><a class="back-link" href="#sec-core">↑ 본문으로</a></div>
+      <p>검색을 통해 찾아낸 외부 지식(문서 조각)을 모델이 답을 생성하기 전에 프롬프트 안에 끼워 넣는 것을 말합니다. 모델을 재학습시키지 않고도, 그 순간 필요한 정보를 프롬프트라는 통로를 통해 모델에게 "주입"하는 셈입니다. RAG 구조에서 검색과 생성 사이를 이어주는 다리 역할을 합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-kb">
+      <div class="glossary-entry-head"><h3>지식베이스 (Knowledge Base)</h3><a class="back-link" href="#sec-core">↑ 본문으로</a></div>
+      <p>RAG 시스템이 검색 대상으로 삼는 원본 자료 모음입니다. 회사 내부 위키, 제품 매뉴얼, HR 정책 문서, 고객 상담 기록 등 형태는 다양하지만, 공통점은 모델이 학습 때 보지 못했을 수도 있는 최신 정보 또는 비공개 정보를 담고 있다는 것입니다. 검색은 항상 이 지식베이스를 대상으로 이뤄집니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://blog-ko.superb-ai.com/limitations-and-workarounds-for-rag/" target="_blank" rel="noopener">검색증강생성(RAG)의 한계점과 보완책</a><span class="src-domain">blog-ko.superb-ai.com</span></li>
+          <li><a href="https://blog.kakaocloud.com/98" target="_blank" rel="noopener">&lt;지식 사전&gt; RAG(검색 증강 생성)가 뭔가요? 실시간 검색과 AI의 똑똑한 만남</a><span class="src-domain">blog.kakaocloud.com</span></li>
+          <li><a href="https://vessl.ai/ko/blog/rag-llm-meaning-and-use-cases" target="_blank" rel="noopener">RAG란? LLM을 보완하는 검색증강생성 기술의 뜻과 활용</a><span class="src-domain">vessl.ai</span></li>
+          <li><a href="https://tech.ktcloud.com/entry/2025-08-ktcloud-ai-rag-%EC%8B%9C%EC%8A%A4%ED%85%9C%EA%B5%AC%EC%A1%B0-%EC%9D%B4%ED%95%B4" target="_blank" rel="noopener">[Tech Series] kt cloud AI 검색 증강 생성(RAG) #1 : 핵심 개념과 시스템 구조 이해</a><span class="src-domain">tech.ktcloud.com</span></li>
+          <li><a href="https://ahha.ai/2024/07/24/rag/" target="_blank" rel="noopener">검색증강생성(RAG; Retrieval-Augmented Generation)이란? -개념, 장점</a><span class="src-domain">ahha.ai</span></li>
+          <li><a href="https://namu.wiki/w/%EA%B2%80%EC%83%89%EC%A6%9D%EA%B0%95%EC%83%9D%EC%84%B1" target="_blank" rel="noopener">검색증강생성</a><span class="src-domain">namu.wiki</span></li>
+          <li><a href="https://brunch.co.kr/@acc9b16b9f0f430/73" target="_blank" rel="noopener">RAG란 무엇인가? 10분만에 이해하기</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://modulabs.co.kr/blog/retrieval-augmented-generation" target="_blank" rel="noopener">RAG(검색 증강 생성)란? - LLM 단점을 보완하는 기술</a><span class="src-domain">modulabs.co.kr</span></li>
+          <li><a href="https://velog.io/@bytee/RAG-%EC%82%AC%EB%82%B4-%EA%B7%9C%EC%A0%95-%EC%B1%97%EB%B4%87-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EA%B0%9C%EC%9A%94%EC%99%80-%EC%84%B8%ED%8C%85" target="_blank" rel="noopener">RAG 사내 규정 챗봇 프로젝트 : 개요</a><span class="src-domain">velog.io</span></li>
+          <li><a href="https://article.textnet.kr/rag-chatbot-development-guide" target="_blank" rel="noopener">사내 지식관리도 AI로? 텍스트넷의 RAG 챗봇 구축기</a><span class="src-domain">article.textnet.kr</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://en.wikipedia.org/wiki/Retrieval-augmented_generation" target="_blank" rel="noopener">Retrieval-augmented generation</a><span class="src-domain">en.wikipedia.org</span></li>
+          <li><a href="https://www.databricks.com/blog/what-is-retrieval-augmented-generation" target="_blank" rel="noopener">What is Retrieval Augmented Generation (RAG)?</a><span class="src-domain">databricks.com</span></li>
+          <li><a href="https://www.ibm.com/think/topics/retrieval-augmented-generation" target="_blank" rel="noopener">What is RAG (Retrieval Augmented Generation)?</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://www.geeksforgeeks.org/nlp/what-is-retrieval-augmented-generation-rag/" target="_blank" rel="noopener">What is Retrieval-Augmented Generation (RAG)</a><span class="src-domain">geeksforgeeks.org</span></li>
+          <li><a href="https://orq.ai/blog/rag-architecture" target="_blank" rel="noopener">RAG Architecture Explained: A Comprehensive Guide</a><span class="src-domain">orq.ai</span></li>
+          <li><a href="https://www.freecodecamp.org/news/rag-explained-simply-with-a-real-project/" target="_blank" rel="noopener">RAG Explained Simply with a Real Project</a><span class="src-domain">freecodecamp.org</span></li>
+          <li><a href="https://www.truefoundry.com/blog/rag-architecture" target="_blank" rel="noopener">What Is RAG Architecture: How It Works & Key Benefits</a><span class="src-domain">truefoundry.com</span></li>
+          <li><a href="https://www.k2view.com/blog/rag-hallucination/" target="_blank" rel="noopener">RAG hallucination: What is it and how to avoid it</a><span class="src-domain">k2view.com</span></li>
+          <li><a href="https://www.ibm.com/think/topics/rag-vector-database" target="_blank" rel="noopener">Vector Databases for RAG</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://aws.amazon.com/what-is/retrieval-augmented-generation/" target="_blank" rel="noopener">What is RAG? - Retrieval-Augmented Generation AI Explained</a><span class="src-domain">aws.amazon.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 2-5 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1-2. LLM은 어떻게 "다음 단어"를 예측하는가</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="1-2">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 1 · AI 기초 체력 다지기</p>
+    <p class="eyebrow">Module 1-2</p>
+    <h1 class="title">LLM은 어떻게 "다음 단어"를 예측하는가</h1>
+    <p class="subtitle">LLM은 문장을 통째로 이해하는 게 아니라, 텍스트를 잘게 쪼갠 뒤 "다음에 올 조각"을 하나씩 예측해 이어 붙입니다. 그 과정을 순서대로 따라가 봅니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">지난 모듈에서 LLM이 "딥러닝 기반의 초대형 언어모델"이라는 걸 확인했습니다. 이번에는 그 LLM이 실제로 대답을 만들어내는 순간, 즉 <a class="term" href="#term-token">토큰</a> 단위로 텍스트를 쪼개고 <a class="term" href="#term-prob-dist">확률분포</a>를 계산해 <a class="term" href="#term-autoregressive">오토리그레시브</a>하게 한 글자씩 이어 쓰는 과정을 뜯어봅니다.</p>
+
+    <h2 id="sec-token">1) <a class="term" href="#term-token">토큰(token)</a> — LLM이 실제로 "보는" 단위</h2>
+    <p>사람은 "오늘 날씨가 좋네요"라는 문장을 하나의 의미 덩어리로 읽습니다. 하지만 LLM은 이 문장을 그대로 이해하지 않습니다. 먼저 문장을 <strong>토큰(token)</strong>이라는 작은 조각으로 잘게 쪼갠 뒤, 그 조각들의 나열로 처리합니다.</p>
+    <p>토큰은 단어와 정확히 일치하지 않습니다. 짧은 단어는 토큰 하나로 처리되기도 하지만, 긴 단어나 낯선 단어는 여러 개의 하위 조각(subword)으로 쪼개지기도 합니다. 한국어처럼 조사가 붙는 언어는 특히 "오늘" + "날씨" + "가"처럼 의미 단위와 조사가 따로 쪼개지는 경우가 많습니다.</p>
+    <div class="example-box"><strong>예시</strong> — "오늘 날씨가"라는 입력은 모델 내부에서 대략 <code>[오늘] [날씨] [가]</code> 같은 토큰 나열로 변환됩니다. 실제 쪼개지는 방식은 모델마다 다르지만, 핵심은 "글자"도 "단어"도 아닌 <strong>모델이 학습한 고유의 단위</strong>로 잘린다는 점입니다.</div>
+    <p>이렇게 텍스트를 토큰으로 바꾸는 과정을 <strong>토큰화(tokenization)</strong>라고 부릅니다. 우리가 ChatGPT나 Claude에 요청을 보내면, 요청 뒤편에서 가장 먼저 일어나는 일이 바로 이 토큰화입니다. API 요금도 이 토큰 개수를 기준으로 매겨지는데, 이 부분은 1-3에서 더 다룹니다.</p>
+
+    <h2 id="sec-prob">2) <a class="term" href="#term-prob-dist">확률분포</a> — 정답을 "아는" 게 아니라 "추측"한다</h2>
+    <p>토큰화를 마치면, LLM은 "오늘 날씨가"라는 토큰 나열을 보고 그다음에 올 토큰이 무엇일지 계산합니다. 이때 모델은 정답 하나를 딱 집어내는 게 아니라, 자신이 알고 있는 <strong>모든 토큰 각각에 대해 "이게 다음에 올 확률이 얼마나 되는가"</strong>를 계산합니다. 이 결과가 바로 확률분포입니다.</p>
+    <div class="example-box"><strong>예시</strong> — "오늘 날씨가" 다음에 올 토큰의 확률분포는 대략 이런 모습일 수 있습니다.<br>
+      "좋네요" — 0.42 · "흐리네요" — 0.21 · "춥네요" — 0.13 · "덥네요" — 0.09 · 그 외 수만 개 토큰 — 나머지 확률을 나눠 가짐.<br>
+      모델은 이 중에서 확률이 높은 후보를 우선적으로 고려해 다음 토큰을 선택합니다.</div>
+    <p>이 확률은 모델이 학습 과정에서 방대한 텍스트를 보며 "이런 문맥 다음에는 대체로 이런 말이 이어지더라"를 통계적으로 익힌 결과입니다. 모델이 "날씨를 이해해서" 대답하는 게 아니라, "이 문맥 다음에 이 토큰이 나올 확률이 높았다"는 패턴을 근거로 답을 고른다는 점이 핵심입니다.</p>
+
+    <h2 id="sec-autoregressive">3) <a class="term" href="#term-autoregressive">오토리그레시브(autoregressive)</a> 생성 — 한 토큰씩, 반복해서</h2>
+    <p>확률분포에서 토큰 하나를 골랐다고 끝이 아닙니다. LLM은 그 토큰을 문장 뒤에 이어 붙이고, <strong>새로 늘어난 문장 전체를 다시 입력으로 삼아</strong> 그다음 토큰의 확률분포를 또 계산합니다. 이 과정을 문장이 끝날 때까지(또는 정해진 길이에 도달할 때까지) 반복합니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 620 260" width="620" height="260" role="img" aria-label="오토리그레시브 생성 과정을 보여주는 순환 다이어그램. 입력에서 확률분포 계산, 토큰 선택, 이어붙이기를 반복한다.">
+        <rect x="20" y="30" width="130" height="54" rx="10" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="85" y="52" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" font-weight="600" fill="var(--ink)">입력</text>
+        <text x="85" y="68" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="11" fill="var(--ink-soft)">"오늘 날씨가"</text>
+
+        <path d="M150 57 H200" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+        <rect x="205" y="20" width="150" height="74" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="280" y="50" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" font-weight="700" fill="var(--accent-strong)">LLM</text>
+        <text x="280" y="68" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--accent-strong)">확률분포 계산</text>
+
+        <path d="M360 57 H410" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+
+        <rect x="415" y="20" width="185" height="74" rx="10" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="507" y="42" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12" font-weight="600" fill="var(--ink)">토큰 선택</text>
+        <text x="507" y="60" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="10.5" fill="var(--ink-soft)">"좋네요" 0.42 ✓</text>
+        <text x="507" y="76" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="10.5" fill="var(--ink-faint)">"흐리네요" 0.21</text>
+
+        <path d="M507 94 V150 H85 V94" stroke="var(--ink-faint)" stroke-width="1.5" fill="none" marker-end="url(#arrow2)"/>
+        <text x="296" y="145" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11.5" fill="var(--ink-soft)">선택된 토큰을 입력 뒤에 이어 붙이고, 다시 처음부터 반복</text>
+
+        <rect x="20" y="180" width="565" height="54" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="302" y="212" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="12" font-weight="600" fill="var(--accent-strong)">"오늘 날씨가 좋네요" → 다음 토큰 다시 예측 → ...</text>
+
+        <defs>
+          <marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--ink-faint)"/></marker>
+        </defs>
+      </svg>
+    </div>
+
+    <p>이렇게 "직전까지 만든 결과를 다시 입력으로 사용해서 다음 값을 예측하는" 방식을 <strong>오토리그레시브(autoregressive)</strong> 방식이라고 부릅니다. LLM이 한 번에 문장 전체를 "완성"해서 내놓는 것처럼 보여도, 실제로는 이 짧은 반복을 수십~수백 번 거쳐 한 토큰씩 순서대로 만들어낸 결과입니다. 채팅창에 답변이 한 글자씩 흘러나오듯 보이는 것도 바로 이 과정이 눈에 보이는 속도로 실행되고 있기 때문입니다.</p>
+
+    <h2 id="sec-temperature-preview">4) 그런데 왜 항상 확률이 가장 높은 토큰만 고르지 않을까?</h2>
+    <p>확률분포에서 매번 1등 후보만 고르면, 모델은 항상 똑같고 딱딱한 문장만 만들게 됩니다. 그래서 실제로는 확률에 따라 무작위성을 얼마나 섞을지 조절하는 장치가 있는데, 이를 <strong>temperature(온도)</strong>라고 부릅니다. temperature를 낮추면 가장 확률 높은 답을 고집하는 보수적인 답변이, 높이면 다양하고 때로는 엉뚱한 답변이 나옵니다.</p>
+    <p>temperature는 실무에서 자주 등장하는 조절 장치이지만, 지금은 "확률분포에서 하나를 고를 때 무작위성을 조절하는 값이 있다" 정도만 기억해두면 충분합니다. 자세한 원리와 실무 활용법은 <strong>1-4. 실무에서 자주 듣는 필수 용어 정리</strong>에서 다룹니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>개념</th><th>한 줄 정의</th></tr></thead>
+      <tbody>
+        <tr><td><a class="term" href="#term-token">토큰</a></td><td>LLM이 텍스트를 처리하는 최소 단위. 단어와 꼭 일치하지 않음</td></tr>
+        <tr><td><a class="term" href="#term-prob-dist">확률분포</a></td><td>다음에 올 수 있는 모든 토큰 후보에 매겨진 가능성 점수</td></tr>
+        <tr><td><a class="term" href="#term-autoregressive">오토리그레시브</a></td><td>토큰을 하나 만들고, 그 결과를 다시 입력해 다음 토큰을 만드는 반복 생성 방식</td></tr>
+      </tbody>
+    </table>
+    <p>결국 LLM의 답변 생성이란, "토큰화 → 확률분포 계산 → 토큰 하나 선택 → 이어붙이기"라는 단순한 절차를 아주 빠르게, 아주 많이 반복하는 것입니다. 이 단순한 반복 속에서 문장처럼 보이는 결과물이 만들어진다는 사실이 LLM을 이해하는 첫 번째 열쇠입니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — "LLM은 다음 단어를 어떻게 고르나요?"라는 질문에 "토큰", "확률", "반복"이라는 세 단어를 넣어서 스스로 한 문장으로 설명해보세요. 다음 모듈(1-3. 학습과 추론의 차이)에서는 이 "확률을 계산하는 능력" 자체가 어떻게 모델 안에 만들어지는지(사전학습)와, 우리가 지금 쓰는 이 과정(추론)이 어떻게 다른지 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-token">
+      <div class="glossary-entry-head"><h3>토큰 (Token)</h3><a class="back-link" href="#sec-token">↑ 본문으로</a></div>
+      <p>LLM이 텍스트를 처리할 때 사용하는 가장 작은 단위입니다. 사람이 보는 "단어"와 정확히 일치하지 않으며, 짧은 단어는 토큰 하나로, 긴 단어나 낯선 단어·조사는 여러 개의 하위 조각(subword)으로 나뉘기도 합니다. 영어는 대략 단어 1개가 토큰 1.3개 정도로, 한국어는 조사·어미가 자주 분리되면서 상대적으로 더 잘게 쪼개지는 경향이 있습니다. LLM API 요금도 이 토큰 개수를 기준으로 청구됩니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-prob-dist">
+      <div class="glossary-entry-head"><h3>확률분포 (Probability Distribution)</h3><a class="back-link" href="#sec-prob">↑ 본문으로</a></div>
+      <p>모델이 가지고 있는 전체 토큰(어휘 집합, vocabulary) 각각에 대해 "이 토큰이 다음에 올 가능성이 얼마나 되는가"를 0~1 사이 숫자로 매긴 결과입니다. 모든 후보의 확률을 더하면 1이 됩니다. LLM은 확률이 가장 높은 후보를 우선 고려하지만, 반드시 1등만 고르는 것은 아니며 이 선택 방식은 temperature 같은 설정값의 영향을 받습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-autoregressive">
+      <div class="glossary-entry-head"><h3>오토리그레시브 (Autoregressive)</h3><a class="back-link" href="#sec-autoregressive">↑ 본문으로</a></div>
+      <p>직전까지 생성한 결과(토큰 나열)를 다시 입력으로 사용해, 그다음 값을 예측하는 방식을 말합니다. LLM은 토큰을 한 번에 전부 만들어내지 않고, "토큰 하나 예측 → 입력에 이어붙임 → 늘어난 입력으로 또 예측"을 문장이 끝날 때까지 반복합니다. 이 방식 때문에 답변이 길어질수록 계산량과 시간이 함께 늘어납니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://www.sisain.co.kr/news/articleView.html?idxno=54418" target="_blank" rel="noopener">'토큰'으로 썰어준다 LLM의 공부 비법 [인공지능 오디세이]</a><span class="src-domain">sisain.co.kr</span></li>
+          <li><a href="https://brunch.co.kr/@mentorsapiens/94" target="_blank" rel="noopener">11화 LLM의 토큰이 대체 뭔가요?</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://tech.kakaopay.com/post/how-llm-works/" target="_blank" rel="noopener">백엔드 개발자의 시선으로 풀어본 LLM 내부 동작 원리: 6단계로 쉽게 이해하기</a><span class="src-domain">tech.kakaopay.com</span></li>
+          <li><a href="https://learn.microsoft.com/ko-kr/dotnet/ai/conceptual/understanding-tokens" target="_blank" rel="noopener">토큰 이해 - .NET</a><span class="src-domain">learn.microsoft.com</span></li>
+          <li><a href="https://www.sktenterprise.com/bizInsight/blogDetail/skt/9622" target="_blank" rel="noopener">대규모 언어 모델(LLM)이 질문할 때마다 다르게 대답하는 작동 원리는?</a><span class="src-domain">sktenterprise.com</span></li>
+          <li><a href="https://blogs.nvidia.co.kr/blog/ai-tokens-explained/" target="_blank" rel="noopener">토큰이란? - AI의 언어이자 통화 단위</a><span class="src-domain">blogs.nvidia.co.kr</span></li>
+          <li><a href="https://jina.ai/ko/news/a-deep-dive-into-tokenization/" target="_blank" rel="noopener">토큰화에 대한 깊이 있는 고찰</a><span class="src-domain">jina.ai</span></li>
+          <li><a href="https://devocean.sk.com/blog/techBoardDetail.do?ID=167450&boardType=techBlog" target="_blank" rel="noopener">쉽게이해하는 GPT. 1편(다음단어 예측기. Base모델)</a><span class="src-domain">devocean.sk.com</span></li>
+          <li><a href="https://www.mfitlab.com/articul8/blog-post/llm-token-budget-operations" target="_blank" rel="noopener">LLM 운영의 핵심은 토큰이다: 컨텍스트, 근거(RAG), 디코딩 정책, 로깅</a><span class="src-domain">mfitlab.com</span></li>
+          <li><a href="https://clova.ai/tech-blog/%ED%86%A0%ED%81%B0-%ED%95%9C-%EC%95%8C%EC%9D%98-%EC%A7%88%EC%A3%BC-llm-%EC%84%9C%EB%B9%99%EC%9D%98-%EB%AA%A8%EB%93%A0-%EA%B2%83-1" target="_blank" rel="noopener">토큰 한 알의 질주: LLM 서빙의 모든 것 (1)</a><span class="src-domain">clova.ai</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://sebastianraschka.com/faq/docs/autoregressive-text-generation.html" target="_blank" rel="noopener">How does autoregressive text generation work at inference time?</a><span class="src-domain">sebastianraschka.com</span></li>
+          <li><a href="https://gmcgoldr.github.io/2026/09/04/llm-next-token-predictors.html" target="_blank" rel="noopener">"Next-token predictor" is the wrong mental model for LLMs</a><span class="src-domain">gmcgoldr.github.io</span></li>
+          <li><a href="https://medium.com/advanced-deep-learning/autoregressive-next-token-prediction-kv-cache-in-transformers-afad22285baf" target="_blank" rel="noopener">Autoregressive next token prediction & KV Cache in transformers</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://thenewstack.io/what-is-an-llm-token-beginner-friendly-guide-for-developers/" target="_blank" rel="noopener">What Is an LLM Token: Beginner-Friendly Guide for Developers</a><span class="src-domain">thenewstack.io</span></li>
+          <li><a href="https://medium.com/thinking-sand/what-is-llm-tokenization-and-why-is-it-important-4eb5fbefb075" target="_blank" rel="noopener">What is LLM Tokenization and Why Is It Important?</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://christophergs.com/blog/understanding-llm-tokenization" target="_blank" rel="noopener">The Technical User's Introduction to LLM Tokenization</a><span class="src-domain">christophergs.com</span></li>
+          <li><a href="https://medium.com/thedeephub/all-you-need-to-know-about-tokenization-in-llms-7a801302cf54" target="_blank" rel="noopener">All you need to know about Tokenization in LLMs</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://learn.microsoft.com/en-us/dotnet/ai/conceptual/understanding-tokens" target="_blank" rel="noopener">Understanding tokens - .NET</a><span class="src-domain">learn.microsoft.com</span></li>
+          <li><a href="https://www.ultralytics.com/glossary/token" target="_blank" rel="noopener">What is a Token in AI? Definition and Examples</a><span class="src-domain">ultralytics.com</span></li>
+          <li><a href="https://www.hopsworks.ai/dictionary/llm-temperature" target="_blank" rel="noopener">LLM Temperature - MLOps Dictionary</a><span class="src-domain">hopsworks.ai</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 1-2 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

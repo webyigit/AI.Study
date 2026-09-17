@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4-2. AI 기반 UX 리서치와 페르소나 생성</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="4-2">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 4 · 실무 도구 활용</p>
+    <p class="eyebrow">Module 4-2</p>
+    <h1 class="title">AI 기반 UX 리서치와 페르소나 생성</h1>
+    <p class="subtitle">인터뷰 녹취록 더미를 AI로 정리해 <a class="term" href="#term-user-research">사용자리서치</a> 인사이트를 뽑고, <a class="term" href="#term-persona">페르소나</a>를 만드는 방법과 — 그보다 더 중요한 "하지 말아야 할 것"을 함께 다룹니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">홈닉 인터뷰를 10명 진행하면, 녹취록만 A4 40장이 넘습니다. 이걸 사람이 하나하나 다시 읽고 공통 주제를 찾는 데는 며칠이 걸리지만, AI를 쓰면 초벌 정리를 몇 시간으로 줄일 수 있습니다. 다만 여기서 "AI가 페르소나까지 대신 만들어준다"로 착각하면 위험한 함정에 빠집니다. 이번 모듈은 그 경계선을 명확히 긋는 것이 목표입니다.</p>
+
+    <h2 id="sec-synthesis">1) 인터뷰 녹취록 → 테마 정리, AI가 잘하는 일</h2>
+    <p>여러 인터뷰 녹취록을 AI에게 한꺼번에 읽히면, 반복적으로 등장하는 표현·불만·요구를 빠르게 묶어줍니다. 사람이 놓치기 쉬운 "여러 인터뷰이가 비슷한 단어로 말한 것"을 기계적으로 찾아내는 데 특히 강합니다.</p>
+    <div class="example-box"><strong>프롬프트 예시</strong><br>"아래는 홈닉 사용자 인터뷰 8건의 녹취록이야. 반려동물을 키우는 응답자들이 반복적으로 언급한 불편함을 <strong>주제별로 묶어서</strong> 정리해줘. 각 주제마다 ① 주제명 ② 관련 발언 인용 2~3개 ③ 몇 명이 언급했는지를 표로 만들어줘."</div>
+    <p>이렇게 나온 결과는 "가설"이지 "결론"이 아닙니다. AI가 뽑은 인용이 맥락을 벗어나 있지는 않은지, 실제 녹취록 원문과 대조하는 과정이 꼭 필요합니다.</p>
+
+    <h2 id="sec-persona-basic">2) 테마에서 페르소나 초안까지</h2>
+    <p>테마 정리가 끝나면, 이를 바탕으로 페르소나 초안을 요청할 수 있습니다. 이때 "실제 인터뷰 데이터에 있는 내용만 써달라"고 명시하는 것이 핵심입니다.</p>
+    <div class="example-box"><strong>프롬프트 예시</strong><br>"위 테마 정리를 바탕으로, 반려동물을 키우는 1인 가구 사용자 페르소나 초안을 만들어줘. <strong>인터뷰에서 실제로 나온 내용만</strong> 사용하고, 추측이 들어간 부분은 '(추정)'이라고 표시해줘. 이름·나이 같은 임의 설정은 최소화하고, 목표·행동 패턴·불편함 위주로 정리해줘."</div>
+    <p>"(추정)" 표시를 요구하는 이유는 간단합니다. AI가 만든 페르소나는 그럴듯한 디테일(나이, 직업, 취미 등)을 자연스럽게 채워 넣는데, 이 디테일이 실제 인터뷰 데이터에 없는 상상인 경우가 많기 때문입니다.</p>
+
+    <h2 id="sec-danger">3) 가장 위험한 함정 — 가짜 데이터로 가짜 확신 만들기</h2>
+    <p>AI가 만든 페르소나는 문장이 매끄럽고 숫자(연령대, 사용 빈도 등)까지 그럴듯하게 붙어 있어서, 실제 데이터에 기반한 것처럼 보이기 쉽습니다. 하지만 인터뷰 인원이 적거나 편향돼 있으면, AI는 그 빈틈을 "그럴듯한 상상"으로 채워 넣습니다. 이걸 그대로 의사결정에 쓰면, 존재하지 않는 사용자를 위해 기능을 만드는 일이 벌어질 수 있습니다.</p>
+    <table class="summary">
+      <thead><tr><th>위험 신호</th><th>왜 위험한가</th></tr></thead>
+      <tbody>
+        <tr><td>인터뷰 인원이 3~4명인데 "대부분의 사용자는..."이라고 일반화</td><td>표본이 작아 대표성이 없는데 확신에 찬 문장으로 포장됨</td></tr>
+        <tr><td>AI가 지어낸 구체적 숫자(예: "68%가 선호")</td><td>실제 설문·통계 없이 그럴듯한 숫자만 붙는 경우가 흔함</td></tr>
+        <tr><td>페르소나를 "실제 사용자 리서치 결과"로 보고서에 그대로 인용</td><td>가상의 데이터가 진짜 조사 결과처럼 조직 내에 퍼질 수 있음</td></tr>
+      </tbody>
+    </table>
+    <p>해외 UX 리서치 업계에서는 이런 현상을 두고 "AI가 만든 페르소나를 검증 없이 진짜 사용자 증거처럼 쓰는 것"의 위험성을 여러 전문가가 지적하고 있습니다. AI 페르소나는 어디까지나 <strong>가설을 빨리 세워보는 도구</strong>로 쓰고, 실제 검증(추가 인터뷰, 설문, 사용성 테스트)을 거치기 전에는 의사결정 근거로 삼지 않는 것이 원칙입니다.</p>
+
+    <h2 id="sec-practice">4) 그래서 실무에서는 이렇게 씁니다</h2>
+    <p>AI를 리서치에서 완전히 배제하자는 말이 아닙니다. 역할을 명확히 나누면 됩니다.</p>
+    <table class="summary">
+      <thead><tr><th>단계</th><th>AI 역할</th><th>사람 역할</th></tr></thead>
+      <tbody>
+        <tr><td>녹취록 정리</td><td>반복 주제·인용 추출(초벌)</td><td>원문 대조, 맥락 왜곡 확인</td></tr>
+        <tr><td>페르소나 초안</td><td>구조화된 초안 문서 생성</td><td>'(추정)' 항목 검증, 표본 크기 명시</td></tr>
+        <tr><td>의사결정</td><td>참고용 가설 제시</td><td>추가 검증 후 실제 기획에 반영 여부 결정</td></tr>
+      </tbody>
+    </table>
+    <p>홈닉 팀이라면, "AI가 초벌 정리한 페르소나 초안"과 "실제 인터뷰 8명의 원본 인용"을 함께 첨부해 공유하는 것이 좋은 습관입니다. 읽는 사람이 AI의 해석과 원본 데이터를 스스로 비교할 수 있게 되기 때문입니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>구분</th><th>핵심</th></tr></thead>
+      <tbody>
+        <tr><td>AI가 잘하는 일</td><td>대량 녹취록에서 반복 주제·인용을 빠르게 뽑아 초벌 정리</td></tr>
+        <tr><td>AI가 못 하는 일</td><td>실제 데이터 없이 그럴듯한 사용자를 "판단"하는 것 — 상상으로 빈틈을 채움</td></tr>
+        <tr><td>필수 습관</td><td>추정 항목 표시 요구, 원문 대조, 표본 크기 항상 명시</td></tr>
+        <tr><td>금지 사항</td><td>AI 페르소나를 검증 없이 "실제 조사 결과"로 보고·인용하는 것</td></tr>
+      </tbody>
+    </table>
+
+    <div class="check-in"><strong>이해 확인</strong> — "AI가 만든 페르소나를 그대로 의사결정에 쓰면 안 되는 이유"를 스스로 한 문장으로 말해보세요. 다음 모듈(4-3. Figma AI 등으로 와이어프레임 빠르게 만들기)에서는 정리된 요구사항을 화면으로 옮기는 과정을 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-user-research">
+      <div class="glossary-entry-head"><h3>사용자리서치 (User Research)</h3><a class="back-link" href="#body">↑ 본문으로</a></div>
+      <p>인터뷰, 설문, 사용성 테스트 등을 통해 실제 사용자의 행동·니즈·불편함을 파악하는 활동 전체를 말합니다. 기획 단계에서 "우리 생각"이 아니라 "실제 사용자의 말과 행동"에 기반해 의사결정을 하기 위한 기초 작업입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-persona">
+      <div class="glossary-entry-head"><h3>페르소나 (Persona)</h3><a class="back-link" href="#sec-persona-basic">↑ 본문으로</a></div>
+      <p>실제 사용자 리서치 데이터를 바탕으로 만든 "가상의 대표 사용자" 프로필입니다. 이름, 목표, 행동 패턴, 불편함 등을 하나의 인물처럼 정리해, 팀이 추상적인 "사용자"가 아니라 구체적인 대상을 떠올리며 기획하게 돕습니다. 데이터 없이 만든 페르소나는 오히려 잘못된 확신을 심어줄 수 있습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-synthetic-user">
+      <div class="glossary-entry-head"><h3>합성 사용자 (Synthetic User)</h3><a class="back-link" href="#sec-danger">↑ 본문으로</a></div>
+      <p>실제 인터뷰이가 아니라 AI가 학습 데이터를 바탕으로 만들어낸 가상의 사용자 응답 또는 프로필을 말합니다. 새로운 주제를 탐색하거나 인터뷰 질문지를 미리 점검하는 용도로는 유용하지만, 실제 조사 결과를 대체할 증거로 쓰면 안 된다는 것이 업계의 공통된 경고입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-thematic-analysis">
+      <div class="glossary-entry-head"><h3>주제별 분석 (Thematic Analysis)</h3><a class="back-link" href="#sec-synthesis">↑ 본문으로</a></div>
+      <p>여러 인터뷰나 텍스트 자료에서 반복적으로 등장하는 주제(테마)를 찾아 묶는 분석 방법입니다. 기존에는 사람이 포스트잇으로 발언을 분류하는 '어피니티 매핑'으로 수작업했지만, AI를 활용하면 대량의 녹취록에서 이 작업의 초벌 버전을 빠르게 얻을 수 있습니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://brunch.co.kr/@areeza77/245" target="_blank" rel="noopener">페르소나 만들기 — AI 도구를 활용해 만들어 보기</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://brunch.co.kr/@ghidesigner/149" target="_blank" rel="noopener">UX 디자인 리서치에 활용할 수 있는 6가지 AI 도구</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://brunch.co.kr/@ghidesigner/266" target="_blank" rel="noopener">Make & AI로 UX리서치 자동화 프로세스 만들기</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://maily.so/tipster/posts/w6ovlk33zk5" target="_blank" rel="noopener">AI를 활용한 페르소나 제작 후기 모음</a><span class="src-domain">maily.so</span></li>
+          <li><a href="https://brunch.co.kr/@ghidesigner/355" target="_blank" rel="noopener">boardmix AI로 페르소나, 사용자여정맵 만들기</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://brunch.co.kr/@axdfc/11" target="_blank" rel="noopener">가상의 사용자를 만드는 방법, 페르소나(persona)</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://www.switas.com/ko/articles/creating-data-driven-user-personas-with-artificial-intelligence" target="_blank" rel="noopener">인공지능을 활용한 데이터 기반 사용자 페르소나 생성</a><span class="src-domain">switas.com</span></li>
+          <li><a href="https://www.gpters.org/uiux/post/ux-analysis-virtual-interview-0ah3QSuq0KN3Ncq" target="_blank" rel="noopener">AI와 더블 다이아몬드 프로세스를 활용한 UX 분석·가상 인터뷰</a><span class="src-domain">gpters.org</span></li>
+          <li><a href="https://www.switas.com/ko/articles/how-ai-can-uncover-deeper-insights-from-your-user-interviews" target="_blank" rel="noopener">AI를 활용하여 사용자 인터뷰에서 더 심층적인 통찰력을 얻는 방법</a><span class="src-domain">switas.com</span></li>
+          <li><a href="https://www.mymap.ai/ko/tools/interview-to-notes" target="_blank" rel="noopener">인터뷰 내용을 노트로 정리하는 AI | MyMap</a><span class="src-domain">mymap.ai</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://medium.com/@mustafa_16192/test-ca8cbe4b22c9" target="_blank" rel="noopener">The Synthetic User Temptation</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://www.uxpin.com/studio/blog/ai-personas/" target="_blank" rel="noopener">AI Personas: How to Create, Validate & Use AI-Generated UX Personas</a><span class="src-domain">uxpin.com</span></li>
+          <li><a href="https://interactions.acm.org/blog/view/the-synthetic-persona-fallacy-how-ai-generated-research-undermines-ux-research" target="_blank" rel="noopener">The Synthetic Persona Fallacy</a><span class="src-domain">interactions.acm.org</span></li>
+          <li><a href="https://www.uhura.de/en/blog/ai-personas-and-synthetic-users-fast-research-or-risky-illusion" target="_blank" rel="noopener">AI personas and synthetic users: Fast research or risky illusion?</a><span class="src-domain">uhura.de</span></li>
+          <li><a href="https://www.nngroup.com/articles/synthetic-users/" target="_blank" rel="noopener">Synthetic Users: If, When, and How to Use AI-Generated "Research"</a><span class="src-domain">nngroup.com</span></li>
+          <li><a href="https://medium.com/design-bootcamp/the-nuts-and-bolts-and-ethics-of-synthetic-user-personas-6a845ac6bed4" target="_blank" rel="noopener">The nuts and bolts and ethics of synthetic user personas</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://getperspective.ai/blog/best-ai-user-research-tools-for-product-managers-2026" target="_blank" rel="noopener">Best AI User Research Tools for Product Managers</a><span class="src-domain">getperspective.ai</span></li>
+          <li><a href="https://cleverx.com/blog/best-ai-tools-for-product-managers-2026/" target="_blank" rel="noopener">Best AI tools for product managers in 2026</a><span class="src-domain">cleverx.com</span></li>
+          <li><a href="https://stackby.com/blog/ai-tools-for-product-managers/" target="_blank" rel="noopener">Best AI Tools for Product Managers</a><span class="src-domain">stackby.com</span></li>
+          <li><a href="https://www.prodmgmt.world/blog/ai-for-product-managers" target="_blank" rel="noopener">AI for Product Managers: How to Actually Use It</a><span class="src-domain">prodmgmt.world</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 4-2 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

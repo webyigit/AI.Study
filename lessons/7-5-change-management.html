@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7-5. 조직에 AI 도입할 때의 변화관리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="7-5">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 7 · 트렌드, 윤리, 리스크</p>
+    <p class="eyebrow">Module 7-5</p>
+    <h1 class="title">조직에 AI 도입할 때의 변화관리</h1>
+    <p class="subtitle">도구 도입보다 어려운, 사람과 프로세스를 바꾸는 문제입니다. <a class="term" href="#term-change-mgmt">변화관리</a>와 <a class="term" href="#term-org-culture">조직문화</a> 관점에서 AI 도입을 정리합니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">이 커리큘럼의 앞부분(1~6)은 대부분 "AI가 무엇이고 어떻게 쓰는가"에 관한 것이었습니다. 이 마지막 모듈은 조금 다른 질문을 다룹니다. "좋은 AI 도구를 골랐는데, 왜 조직에서는 잘 쓰이지 않는가?" 여러 조사에서 AI 프로젝트의 상당수가 기대만큼의 성과로 이어지지 못하고 있다고 알려져 있는데, 그 원인의 상당 부분은 기술이 아니라 <strong>사람과 프로세스</strong>에 있다는 지적이 꾸준히 나오고 있습니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 600 180" width="600" height="180" role="img" aria-label="기술 도입만 하는 경우와 변화관리를 함께 하는 경우의 결과 차이를 비교하는 다이어그램">
+        <text x="150" y="24" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--ink)">기술 도입만 할 때</text>
+        <rect x="30" y="45" width="240" height="42" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="150" y="70" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--ink)">AI 도구 도입 + 사용법 교육</text>
+        <line x1="150" y1="87" x2="150" y2="112" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow4)"/>
+        <rect x="30" y="115" width="240" height="42" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="150" y="140" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--ink-faint)">직원들, 결국 예전 방식으로 복귀</text>
+
+        <text x="450" y="24" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--ink)">변화관리를 함께 할 때</text>
+        <rect x="330" y="45" width="240" height="42" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="450" y="70" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--ink)">AI 도구 + 워크플로우·평가기준 재설계</text>
+        <line x1="450" y1="87" x2="450" y2="112" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow4)"/>
+        <rect x="330" y="115" width="240" height="42" rx="8" fill="var(--accent-soft)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="450" y="140" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--accent-strong)" font-weight="600">실제 업무 방식에 정착</text>
+        <defs>
+          <marker id="arrow4" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="var(--ink-faint)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <h2 id="sec-why">1) 왜 기술보다 사람이 어려운가</h2>
+    <p>AI 도구를 도입하는 것 자체는 계약하고 계정을 나눠주면 끝나는 일입니다. 하지만 그 도구가 실제로 업무 방식을 바꾸려면, 사람들이 "익숙한 방식"을 버리고 "낯선 방식"을 선택해야 합니다. 연구들에서 공통적으로 지적하는 것은, AI 프로젝트가 겪는 어려움의 상당 부분이 데이터나 모델 성능 같은 기술적 문제가 아니라 <strong>조직 안의 사람이 어떻게 반응하는가</strong>에서 비롯된다는 점입니다. 리더가 프로세스와 기술에만 집중하고, 구성원의 불안이나 저항을 해소하는 과정을 건너뛰면 도구만 있고 실제 변화는 일어나지 않는 결과로 이어지기 쉽습니다.</p>
+
+    <h2 id="sec-resistance">2) 저항은 어디서 오는가</h2>
+    <p><strong>일자리에 대한 불안</strong> — "이 도구가 결국 내 업무를 대체하는 것 아닌가"라는 우려는 매우 자연스러운 반응입니다. 이 불안이 해소되지 않으면, 구성원은 AI를 적극적으로 배우기보다 최소한으로만 사용하거나 회피하게 됩니다.</p>
+    <p><strong>신뢰의 격차</strong> — 경영진은 AI의 판단을 상대적으로 신뢰하는 반면, 실무자는 AI의 판단을 신뢰하기 어려워하는 경우가 많다는 조사 결과들이 있습니다. 이 신뢰 격차는 "위에서 결정하고 아래로 지시하는" 방식의 도입 과정에서 더 벌어지는 경향이 있다고 알려져 있습니다.</p>
+    <p><strong>평가 기준과의 불일치</strong> — AI 활용이 권장되지만, 정작 성과 평가 기준이나 업무 산출물 양식은 예전 그대로인 경우가 흔합니다. 이런 경우 구성원 입장에서는 새로운 방식을 배우는 수고를 들일 유인이 부족해지고, 결국 원래 방식으로 돌아가게 됩니다.</p>
+    <div class="example-box"><strong>예시</strong> — AI로 초안을 훨씬 빠르게 만들 수 있는 업무라도, 결재 절차와 문서 양식이 예전 방식 그대로 고정되어 있다면 결과적으로 "AI로 빠르게 만든 초안을 다시 손으로 기존 양식에 맞춰 옮기는" 이중 작업이 되어 오히려 번거로움만 늘어날 수 있습니다.</div>
+
+    <h2 id="sec-practical">3) 무엇을 할 수 있는가</h2>
+    <p><strong>포지셔닝의 전환</strong> — AI를 "일자리를 위협하는 도구"가 아니라 "반복 업무를 줄여주는 동료"로 소통하는 것이 출발점입니다. 이는 말만 바꾸는 것이 아니라, 실제로 AI가 대체하는 업무와 사람에게 남는 업무를 구체적으로 설명하는 것을 포함합니다.</p>
+    <p><strong>실습 중심의 교육</strong> — 사용법을 한 번 설명하는 교육보다, 실제 업무 사례로 직접 써보게 하는 방식이 정착률을 높인다고 알려져 있습니다. 사내 우수 활용 사례를 공유하거나, 부서별 담당자(체인지 챔피언)를 두는 방식도 자주 언급됩니다.</p>
+    <p><strong>워크플로우와 평가 기준의 재설계</strong> — 도구만 새로 주고 기존 프로세스·평가 기준을 그대로 둔다면 변화가 정착되기 어렵습니다. AI 활용을 전제로 업무 절차와 성과 지표를 함께 다시 설계해야, 새로운 방식이 "선택"이 아니라 "기본값"이 됩니다.</p>
+    <p><strong>명확한 목표와 측정 기준</strong> — "일단 AI를 써보자" 수준이 아니라, 무엇을 개선하고자 하는지 구체적인 목표와 측정 기준을 먼저 세우는 것이 성공과 실패를 구분할 수 있게 해줍니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>실패 원인</th><th>구체적 모습</th><th>대응 방향</th></tr></thead>
+      <tbody>
+        <tr><td>일자리 불안</td><td>도구 회피, 최소한의 형식적 사용</td><td>대체 업무와 남는 업무를 구체적으로 소통</td></tr>
+        <tr><td>신뢰 격차</td><td>경영진과 실무자의 AI 신뢰도 차이</td><td>실무자가 직접 참여하는 도입 과정 설계</td></tr>
+        <tr><td>평가기준 불일치</td><td>AI 활용을 권장하지만 기존 양식·지표 유지</td><td>워크플로우와 평가 기준을 함께 재설계</td></tr>
+      </tbody>
+    </table>
+    <p>결국 AI 도입의 성패는 "얼마나 좋은 모델을 쓰는가"보다 "그 도구를 둘러싼 사람들의 불안을 얼마나 다뤘는가", "기존 업무 방식을 얼마나 함께 바꿨는가"에 더 크게 좌우된다고 여러 연구와 사례가 공통적으로 지적하고 있습니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 우리 조직(또는 팀)에서 AI 도구가 잘 정착하지 못한 사례가 있다면, 그 원인이 기술 문제였는지 사람·프로세스 문제였는지 스스로 되짚어보세요. 이 모듈로 Phase 7이 마무리됩니다. Phase 8("다음 단계")에서는 지금까지 배운 내용을 실제 업무에 어떻게 이어갈지를 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-change-mgmt">
+      <div class="glossary-entry-head"><h3>변화관리 (Change Management)</h3><a class="back-link" href="#sec-why">↑ 본문으로</a></div>
+      <p>새로운 도구나 프로세스를 조직에 도입할 때, 구성원의 이해·수용·행동 변화를 체계적으로 이끌어내는 활동을 말합니다. 기술 도입 자체보다, 그 기술이 실제 업무 방식으로 자리 잡게 만드는 커뮤니케이션·교육·프로세스 재설계 과정을 포괄합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-org-culture">
+      <div class="glossary-entry-head"><h3>조직문화 (Organizational Culture)</h3><a class="back-link" href="#sec-resistance">↑ 본문으로</a></div>
+      <p>조직 구성원들이 공유하는 업무 방식, 가치관, 암묵적 규범을 말합니다. AI 도입이 성공하려면 도구 자체뿐 아니라 "새로운 방식을 시도해도 괜찮다"는 조직문화, 그리고 그 시도를 뒷받침하는 평가·보상 체계가 함께 바뀌어야 한다고 여겨집니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-change-champion">
+      <div class="glossary-entry-head"><h3>체인지 챔피언 (Change Champion)</h3><a class="back-link" href="#sec-practical">↑ 본문으로</a></div>
+      <p>각 부서·팀에서 새로운 도구나 업무 방식의 도입을 먼저 익히고, 동료들에게 실제 활용법을 전파하는 역할을 맡은 구성원을 말합니다. 위에서 일방적으로 지시하는 방식보다, 동료를 통한 확산이 저항을 줄이고 정착을 돕는다고 알려져 있습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-workflow-redesign">
+      <div class="glossary-entry-head"><h3>워크플로우 재설계 (Workflow Redesign)</h3><a class="back-link" href="#sec-practical">↑ 본문으로</a></div>
+      <p>AI 도구가 잘 활용되도록 업무 절차, 결재 방식, 산출물 양식 자체를 새로 설계하는 것을 말합니다. 기존 프로세스에 AI만 얹는 방식은 오히려 이중 작업을 만들 수 있어, 프로세스 전체를 다시 그리는 접근이 필요하다고 언급됩니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-trust-gap">
+      <div class="glossary-entry-head"><h3>신뢰 격차 (Trust Gap)</h3><a class="back-link" href="#sec-resistance">↑ 본문으로</a></div>
+      <p>AI의 판단·결과에 대한 신뢰 수준이 조직 내 위치(예: 경영진 대 실무자)에 따라 크게 차이 나는 현상을 말합니다. 이 격차가 클수록 AI 도입 결정과 실제 현장의 수용 사이에 괴리가 생기기 쉬우며, 실무자가 도입 과정에 직접 참여하는 것이 격차를 줄이는 방법으로 언급됩니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://flex.team/blog/2025/12/01/ai-failed/" target="_blank" rel="noopener">AI 도입을 서두르면 실패하는 이유: 속도보다 중요한 건 순서</a><span class="src-domain">flex.team</span></li>
+          <li><a href="https://www.nextunicorn.kr/insight/214152e81a6329b5" target="_blank" rel="noopener">AI 도입 후 성과가 안 나는 스타트업을 위한 체크리스트</a><span class="src-domain">nextunicorn.kr</span></li>
+          <li><a href="https://www.cio.com/article/4084503/%EC%82%AC%EB%9E%8C%EC%9D%98-%EB%B3%80%ED%99%94%EA%B0%80-%EC%84%B1%EA%B3%B5%EC%9D%98-%ED%95%B5%EC%8B%AC-ai-%EC%97%90%EC%9D%B4%EC%A0%84%ED%8A%B8%EB%A5%BC-%EC%9C%84%ED%95%9C-%EB%B3%80.html" target="_blank" rel="noopener">"사람의 변화가 성공의 핵심" AI 에이전트를 위한 변화 관리 가이드</a><span class="src-domain">cio.com</span></li>
+          <li><a href="https://kbthink.com/main/economy/economic-in-depth-analysis/economic-knowledge-vitamin/2025/economic-knowledge-vitamin-2-250428.html" target="_blank" rel="noopener">AI가 조직 전체에 확산하지 못하는 이유</a><span class="src-domain">kbthink.com</span></li>
+          <li><a href="https://blog.windyflo.com/blog/ai-agent-adoption-failure/" target="_blank" rel="noopener">기업 AI 도입 실패 원인 7가지</a><span class="src-domain">blog.windyflo.com</span></li>
+          <li><a href="https://blog.wantedlab.com/hr/trend/hrlab-creater-ai-3" target="_blank" rel="noopener">AI 전환은 왜 실패할까? AX 시대 조직 변화의 조건</a><span class="src-domain">blog.wantedlab.com</span></li>
+          <li><a href="https://www.fnnews.com/news/202609091826242004" target="_blank" rel="noopener">"AI에이전트, 보조 넘어 직접 일하는 시대… 기업 조직·업무 재설계를"</a><span class="src-domain">fnnews.com</span></li>
+          <li><a href="https://www.dt.co.kr/article/12068592" target="_blank" rel="noopener">SKT, AI 중심 업무 재설계…조직 문화까지 손본다</a><span class="src-domain">dt.co.kr</span></li>
+          <li><a href="https://www.cio.com/article/4018450/%EA%B8%B0%EC%88%A0-%EB%8F%84%EA%B5%AC%EA%B0%80-%EC%95%84%EB%8B%88%EB%9D%BC-%EC%97%85%EB%AC%B4-%EB%B0%A9%EC%8B%9D-cio%EC%9D%98-%EC%83%88%EB%A1%9C%EC%9A%B4-ai-%EA%B3%BC%EC%A0%9C.html" target="_blank" rel="noopener">"기술 도구가 아니라 업무 방식" CIO의 새로운 AI 과제, 조직 변화 관리</a><span class="src-domain">cio.com</span></li>
+          <li><a href="https://www.alchera.ai/resource/blog/AI-utilizing-organization-culture" target="_blank" rel="noopener">'AI 활용' 조직 문화 들어서자 현장이 움직이기 시작했다</a><span class="src-domain">alchera.ai</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.prosci.com/blog/ai-adoption" target="_blank" rel="noopener">AI Adoption: Driving Change With a People-First Approach</a><span class="src-domain">prosci.com</span></li>
+          <li><a href="https://business.udemy.com/blog/why-teams-resist-ai/" target="_blank" rel="noopener">Why Employees Resist AI and How Leaders Can Address It</a><span class="src-domain">business.udemy.com</span></li>
+          <li><a href="https://www.cielotalent.com/resources/articles/turning-resistance-into-readiness-a-consultative-approach-to-ai-adoption/" target="_blank" rel="noopener">AI adoption consulting: From resistance to readiness</a><span class="src-domain">cielotalent.com</span></li>
+          <li><a href="https://www.yourthoughtpartner.com/blog/ai-change-management" target="_blank" rel="noopener">AI Change Management: A Playbook for AI Adoption</a><span class="src-domain">yourthoughtpartner.com</span></li>
+          <li><a href="https://www.fastcompany.com/91568873/stop-asking-employees-to-adopt-ai" target="_blank" rel="noopener">Stop asking employees to adopt AI</a><span class="src-domain">fastcompany.com</span></li>
+          <li><a href="https://www.digitalapplied.com/blog/change-management-ai-adoption-2026-overcoming-resistance-playbook" target="_blank" rel="noopener">Change Management for AI Adoption: A 2026 Playbook</a><span class="src-domain">digitalapplied.com</span></li>
+          <li><a href="https://www.prosci.com/blog/why-ai-transformation-fails" target="_blank" rel="noopener">Why AI Transformation Fails</a><span class="src-domain">prosci.com</span></li>
+          <li><a href="https://knowledge.insead.edu/strategy/ai-transformation-not-about-tech" target="_blank" rel="noopener">AI Transformation Is Not About Tech</a><span class="src-domain">knowledge.insead.edu</span></li>
+          <li><a href="https://simorconsulting.com/blog/why-most-ai-transformations-fail-its-not-the-technology/" target="_blank" rel="noopener">Why most AI transformations fail (it's not the technology)</a><span class="src-domain">simorconsulting.com</span></li>
+          <li><a href="https://aijourn.com/why-70-of-ai-transformations-fail-and-its-not-the-technology/" target="_blank" rel="noopener">Why 70% of AI Transformations Fail (And It's Not the Technology)</a><span class="src-domain">aijourn.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 7-5 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

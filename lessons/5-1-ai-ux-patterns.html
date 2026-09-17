@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5-1. AI 기능을 제품에 녹이는 UX 패턴</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="5-1">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 5 · AI 서비스·제품 기획</p>
+    <p class="eyebrow">Module 5-1</p>
+    <h1 class="title">AI 기능을 제품에 녹이는 UX 패턴</h1>
+    <p class="subtitle">"AI를 넣는다"는 건 새로운 화면을 발명하는 일이 아닙니다. 이미 사용자에게 검증된 몇 가지 상호작용 패턴 중 무엇을 고를지 고르는 일이며, 그 선택은 개발자가 아니라 기획자가 내리는 결정입니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">AI 기능을 붙인 제품들을 뜯어보면, 화면은 다 달라 보여도 사용자와 상호작용하는 방식은 몇 가지로 수렴합니다. 이렇게 반복적으로 검증된 상호작용 방식을 <a class="term" href="#term-ai-ux-pattern">AI UX패턴</a>이라고 부릅니다. 홈닉 같은 스마트홈 앱을 기획할 때도 "이 기능을 어떤 화면에 넣을까"보다 먼저 "이 기능은 네 가지 패턴 중 어디에 해당하는가"를 정하는 게 순서입니다. 패턴이 다르면 사용자가 기대하는 정확도, 허용하는 실수의 크기, 필요한 설명의 양이 전부 달라지기 때문입니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 480 320" width="480" height="320" role="img" aria-label="네 가지 AI UX 패턴을 AI 주도성과 사용자 입력 자유도 두 축으로 배치한 다이어그램">
+        <rect x="10" y="10" width="460" height="300" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1"/>
+        <line x1="70" y1="270" x2="450" y2="270" stroke="var(--line)" stroke-width="1.5"/>
+        <line x1="70" y1="270" x2="70" y2="35" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="260" y="298" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="11.5" fill="var(--ink-faint)">AI 주도성 (사용자가 요청 → AI가 먼저 제안)  →</text>
+        <text x="26" y="150" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="11.5" fill="var(--ink-faint)" transform="rotate(-90 26 150)">사용자 입력의 자유도 (낮음 → 높음)  →</text>
+
+        <circle cx="130" cy="190" r="9" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="130" y="170" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="600" fill="var(--ink)">자동완성</text>
+        <text x="130" y="212" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-faint)">입력 중 제안</text>
+
+        <circle cx="175" cy="68" r="9" fill="var(--accent)" stroke="var(--accent-strong)" stroke-width="1.5"/>
+        <text x="175" y="52" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--accent-contrast)" style="paint-order: stroke; stroke: var(--surface-raised); stroke-width: 4px;">대화형 UI</text>
+        <text x="175" y="90" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-faint)">자유 대화</text>
+
+        <circle cx="255" cy="232" r="9" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="255" y="252" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="600" fill="var(--ink)">추천</text>
+        <text x="255" y="214" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-faint)">둘러보다 발견</text>
+
+        <circle cx="400" cy="205" r="9" fill="var(--accent)" stroke="var(--accent-strong)" stroke-width="1.5"/>
+        <text x="400" y="188" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--ink)">사전 제안형</text>
+        <text x="400" y="227" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-faint)">묻지 않고 먼저 알림</text>
+      </svg>
+    </div>
+
+    <h2 id="sec-recommend">1) 추천 (Recommendation)</h2>
+    <p>추천은 사용자가 명시적으로 검색하거나 요청하지 않아도, AI가 데이터를 바탕으로 "이거 어때요?"를 미리 골라 보여주는 패턴입니다. 사용자는 훑어보다가 마음에 들면 클릭하면 되고, 관심 없으면 그냥 지나치면 그만입니다. 그래서 선택의 부담이 낮고, 잘못 추천해도 무시하고 넘어가면 되는 <strong>손실이 작은</strong> 상황에 특히 잘 맞습니다.</p>
+    <p><strong>언제 쓰나</strong> — 콘텐츠·옵션의 수가 많아서 사용자가 스스로 다 훑기 힘들 때, 그리고 추천이 틀려도 사용자가 큰 피해 없이 무시할 수 있을 때 씁니다. 반대로 추천이 틀렸을 때 사용자가 손해를 보는 상황(예: 잘못된 자동 실행)이라면 추천이 아니라 "확인을 거치는" 다른 패턴을 써야 합니다.</p>
+    <div class="example-box"><strong>실제 사례</strong> — 넷플릭스·유튜브의 홈 화면은 사용자가 아무 검색도 하지 않아도 시청 이력을 바탕으로 콘텐츠를 미리 줄 세워 보여줍니다. 넷플릭스 시청량의 상당수가 검색이 아니라 이 추천 화면에서 시작됩니다.<br><strong>홈닉 예시</strong> — 홈닉이 "이번 달 전기 사용량을 보니, 오후 2~4시 냉방을 26도로 바꾸면 요금을 줄일 수 있어요"라며 에너지 절약 루틴을 홈 화면 카드로 미리 골라 보여주고, 사용자는 마음에 들면 "적용", 아니면 그냥 넘기면 됩니다.</div>
+
+    <h2 id="sec-autocomplete">2) 자동완성 (Autocomplete / 스마트 제안)</h2>
+    <p>자동완성은 사용자가 이미 뭔가를 입력하기 시작한 상태에서, AI가 남은 부분을 예측해 이어 붙여주는 패턴입니다. 추천과 다른 점은 사용자가 먼저 행동을 시작해야 트리거된다는 것입니다. 즉 AI가 먼저 나서는 게 아니라, 사용자의 입력 흐름 중간에 "끼어드는" 방식입니다.</p>
+    <p><strong>언제 쓰나</strong> — 사용자가 반복적이거나 예측 가능한 패턴으로 입력할 때(검색어, 이메일 문장, 조건식 등) 타이핑 비용을 줄여주는 용도로 적합합니다. 다만 제안이 자주 틀리면 오히려 사용자의 흐름을 끊으므로, 확신이 낮을 땐 아예 제안을 띄우지 않는 편이 낫습니다. 또한 반드시 <strong>Tab이나 클릭 한 번으로 거부할 수 있어야</strong> 하며, 사용자가 직접 타이핑을 이어가는 것을 방해해서는 안 됩니다.</p>
+    <div class="example-box"><strong>실제 사례</strong> — Gmail의 스마트 작성(Smart Compose)은 이메일을 쓰는 도중 다음 문장을 회색 글씨로 미리 보여주고, Tab 키를 누르면 그대로 채택됩니다. 검색창의 자동완성도 같은 원리입니다.<br><strong>홈닉 예시</strong> — 사용자가 자동화 규칙을 만들며 "거실 온도가 28도 이상이면…"까지 입력하면, 홈닉이 "…에어컨을 24도로 켜기"처럼 과거에 자주 쓴 조건을 이어서 제안해 규칙 만들기를 몇 초 만에 끝내게 해줍니다.</div>
+
+    <h2 id="sec-chat">3) 대화형 UI (Conversational UI)</h2>
+    <p>대화형 UI는 정해진 버튼이나 메뉴 구조 대신, 자연어로 자유롭게 묻고 답하는 방식입니다. 네 패턴 중 사용자에게 가장 넓은 자유도를 주지만, 동시에 "이 화면에서 뭘 할 수 있는지"가 눈에 보이지 않는다는 단점도 있습니다. 그래서 대화형 UI를 처음 켰을 때 무엇을 물어볼 수 있고 무엇을 못 하는지 알려주는 <a class="term" href="#term-onboarding">온보딩</a> 설계가 다른 패턴보다 훨씬 중요합니다. 기대치가 맞춰지지 않으면 사용자는 AI가 못 하는 일을 요청했다가 실망하고 이탈하기 쉽습니다.</p>
+    <p><strong>언제 쓰나</strong> — 사용자의 요청이 버튼 몇 개로 정리하기 힘들 만큼 다양하고, 조건을 조합해서 말하는 게 메뉴를 여러 번 탭 하는 것보다 더 빠를 때 씁니다. 반대로 "온도를 24도로 바꾼다"처럼 목적이 하나로 정해져 있고 조작이 단순하다면, 굳이 채팅창을 열게 하는 것보다 버튼이나 슬라이더 같은 단순한 폼이 훨씬 빠르고 오류도 적습니다. 대화형 UI는 "말로 하는 게 실제로 더 편한 경우"에만 정당화됩니다.</p>
+    <div class="example-box"><strong>실제 사례</strong> — 고객센터 챗봇이나 음성 비서는 정해진 메뉴 트리를 타는 대신 "이번 달 요금이 왜 이렇게 나왔어?"처럼 자유 문장으로 물어볼 수 있게 해줍니다.<br><strong>홈닉 예시</strong> — "외출할 때 거실이랑 침실 조명만 끄고 나머지는 그대로 둬줘"처럼, 기기별로 일일이 토글을 조작하지 않고 자연어 한 문장으로 여러 기기를 한 번에 제어하는 홈닉의 음성·채팅 컨트롤이 대화형 UI에 해당합니다.</div>
+
+    <h2 id="sec-proactive">4) 사전 제안형 (Proactive Suggestion)</h2>
+    <p>사전 제안형은 사용자가 묻지도, 화면을 켜지도 않았는데 AI가 먼저 "이거 확인해보세요"라고 말을 거는 패턴입니다. 네 패턴 중 <strong>AI 주도성이 가장 높은</strong> 방식이라, 잘 맞으면 사용자가 미처 몰랐던 문제를 미리 막아주는 강력한 가치를 만들지만, 잘못 쓰면 가장 먼저 "귀찮은 AI"로 낙인찍히는 패턴이기도 합니다.</p>
+    <p><strong>언제 쓰나</strong> — 확신이 매우 높고(오탐이 드물고), 알려주는 시점이 늦으면 손해가 커지는 상황에서만 씁니다. 스마트폰이 배터리가 부족할 때만 절전 모드를 제안하듯, 사전 제안형은 "자주" 뜨면 안 됩니다. 애매한 확신으로 알림을 남발하면 사용자는 곧 알림을 무시하거나 기능 자체를 꺼버립니다. 그래서 이 패턴을 넣기 전에는 반드시 "이 알림이 한 달에 몇 번 뜰 것으로 예상되는지", "잘못 떴을 때 사용자가 입는 손해가 무엇인지"부터 따져봐야 합니다.</p>
+    <div class="example-box"><strong>실제 사례</strong> — 스마트폰이 배터리가 급격히 닳고 있을 때 "절전 모드를 켤까요?"라고 먼저 물어보는 것이 대표적인 사전 제안입니다. 사용자가 배터리 설정을 켠 적도, 찾아본 적도 없지만 시스템이 먼저 판단해 알려줍니다.<br><strong>홈닉 예시</strong> — "창문이 열려 있는데 에어컨이 켜져 있어요. 에어컨을 끌까요?"처럼, 사용자가 확인하지 않았을 낭비 상황을 홈닉이 센서 데이터로 먼저 포착해 알려주는 것이 사전 제안형입니다.</div>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>패턴</th><th>언제 쓰나</th><th>리스크</th></tr></thead>
+      <tbody>
+        <tr><td>추천</td><td>옵션이 많고, 잘못 골라도 사용자가 가볍게 무시 가능할 때</td><td>계속 취향과 안 맞으면 "안 보는 화면"으로 전락</td></tr>
+        <tr><td>자동완성</td><td>입력 패턴이 반복적·예측 가능하고 타이핑 비용을 줄이고 싶을 때</td><td>예측이 자주 틀리면 입력 흐름을 방해</td></tr>
+        <tr><td>대화형 UI</td><td>요청이 다양해 메뉴로 정리하기 힘들고, 말이 조작보다 빠를 때</td><td>할 수 있는 일의 경계가 안 보여 기대와 실망 격차 발생</td></tr>
+        <tr><td>사전 제안형</td><td>확신이 매우 높고, 늦게 알리면 손해가 큰 상황일 때</td><td>오탐·과다 알림 시 신뢰를 가장 빨리 잃음</td></tr>
+      </tbody>
+    </table>
+    <p>네 패턴은 서로 배타적이지 않습니다. 홈닉의 "냉방 절약 제안" 하나도, 처음엔 추천 카드로 가볍게 띄우다가, 확신이 충분히 쌓인 특정 사용자에게는 사전 제안형 알림으로 격상시키는 식으로 단계적으로 설계할 수 있습니다. 중요한 건 화면을 먼저 그리는 게 아니라, "이 기능이 어떤 패턴이어야 하는가"를 먼저 정하는 순서입니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 홈닉에 "반려동물이 집에 혼자 있을 때 실내 온도가 위험 수준으로 오르면 알려주는 기능"을 넣는다고 생각해보세요. 이건 추천, 자동완성, 대화형 UI, 사전 제안형 중 어느 패턴에 가장 가까울까요? 그리고 그렇게 고른 이유를 "언제 쓰나" 기준으로 한 문장씩 설명해보세요.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-ai-ux-pattern">
+      <div class="glossary-entry-head"><h3>AI UX패턴 (AI UX Pattern)</h3><a class="back-link" href="#sec-recommend">↑ 본문으로</a></div>
+      <p>AI 기능을 제품에 붙일 때 반복적으로 관찰되는, 검증된 상호작용 방식의 모음을 말합니다. 매번 새로운 인터랙션을 발명하는 대신 추천·자동완성·대화형 UI·사전 제안형처럼 사용자가 이미 다른 제품에서 익숙해진 패턴을 재사용하면, 학습 비용이 줄고 AI의 불확실성(틀릴 수도 있다는 점)을 다루는 검증된 방법도 함께 따라옵니다. Google의 People + AI Guidebook이나 Shape of AI 같은 레퍼런스들이 이런 패턴을 체계적으로 정리해 공유하고 있습니다. 제품 기획자 입장에서는 "이 AI 기능이 어떤 패턴에 해당하는가"를 먼저 정하는 것이, 화면 디자인보다 앞서는 첫 번째 결정입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-onboarding">
+      <div class="glossary-entry-head"><h3>온보딩 (Onboarding)</h3><a class="back-link" href="#sec-chat">↑ 본문으로</a></div>
+      <p>신규 사용자가 제품이나 새 기능을 처음 접했을 때, 짧은 시간 안에 "이게 뭘 해주는지", "어떻게 쓰는지"를 이해시켜 이탈 없이 정착시키는 설계 과정입니다. 일반 UI에서도 중요하지만, AI 기능에서는 더 결정적입니다. AI가 무엇을 할 수 있고 무엇을 못 하는지가 버튼처럼 눈에 보이지 않기 때문에, 온보딩 없이는 사용자가 AI의 능력을 과대평가했다가 실망하거나, 과소평가해서 쓸 수 있는 기능을 놓치기 쉽습니다. 특히 대화형 UI나 사전 제안형처럼 AI가 먼저 나서거나 자유도가 높은 패턴일수록, 첫 사용 시 기대치를 정확히 맞춰주는 온보딩이 신뢰 형성에 큰 영향을 줍니다. 홈닉이라면 "이렇게 말해보세요" 같은 예시 문장을 처음 채팅창을 열었을 때 보여주는 것이 온보딩의 한 예입니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://pxd.co.kr/ko/insights/ai-ui-ux-2" target="_blank" rel="noopener">AI의 사용자 경험은 디자인부터 다르다</a><span class="src-domain">pxd.co.kr</span></li>
+          <li><a href="https://www.samsungsds.com/kr/insights/chatbot_design_guide.html" target="_blank" rel="noopener">챗봇 설계 A to Z — UX 실무자를 위한 챗봇 설계 가이드</a><span class="src-domain">samsungsds.com</span></li>
+          <li><a href="https://blog.rightbrain.co.kr/?p=11118" target="_blank" rel="noopener">챗봇 기획자를 위한 실전 Tip — 챗봇 UX 설계 시 체크 포인트 (1)</a><span class="src-domain">blog.rightbrain.co.kr</span></li>
+          <li><a href="https://brunch.co.kr/@@f287/5" target="_blank" rel="noopener">대화의 흐름을 디자인하다: 대화형 AI 챗봇 UX/UI</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://brunch.co.kr/@greening/32" target="_blank" rel="noopener">08화 시작하는 사용자: 온보딩 UX, 소개팅처럼 설계하라</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://medium.com/skelterlabs-designer/generative-ai-ux-pattern-ai-notice-f0e107e31ac4" target="_blank" rel="noopener">Generative AI UX Pattern: (1) AI Notice</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://www.skelterlabs.com/blog/ux-pattern-prompt-design" target="_blank" rel="noopener">Generative AI UX Pattern: (5) 프롬프트(Prompt) 디자인</a><span class="src-domain">skelterlabs.com</span></li>
+          <li><a href="https://www.xpleat.kr/Article/article-28" target="_blank" rel="noopener">우리가족 맞춤 AI 집사: 미래 스마트홈 UX</a><span class="src-domain">xpleat.kr</span></li>
+          <li><a href="https://velog.io/@not_even__close/UIUX%EC%8A%A4%ED%84%B0%EB%94%94-12-%EC%98%A8%EB%B3%B4%EB%94%A9" target="_blank" rel="noopener">UI&amp;UX스터디 12 : 온보딩</a><span class="src-domain">velog.io</span></li>
+          <li><a href="https://ditoday.com/%EB%8D%B0%EC%9D%B4%ED%84%B0%EC%97%90%EC%84%9C-%EA%B2%BD%ED%97%98%EC%9C%BC%EB%A1%9C-ai%EA%B0%80-%EB%A7%8C%EB%93%9C%EB%8A%94-%EA%B0%9C%EC%9D%B8%ED%99%94-ux/" target="_blank" rel="noopener">"데이터에서 경험으로" AI가 만드는 '개인화 UX'</a><span class="src-domain">ditoday.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://pair.withgoogle.com/guidebook-v2/" target="_blank" rel="noopener">People + AI Guidebook</a><span class="src-domain">pair.withgoogle.com</span></li>
+          <li><a href="https://www.smashingmagazine.com/2025/07/design-patterns-ai-interfaces/" target="_blank" rel="noopener">Design Patterns For AI Interfaces</a><span class="src-domain">smashingmagazine.com</span></li>
+          <li><a href="https://www.shapeof.ai/" target="_blank" rel="noopener">The Shape of AI — UX Patterns for Artificial Intelligence Design</a><span class="src-domain">shapeof.ai</span></li>
+          <li><a href="https://uxplanet.org/7-key-design-patterns-for-ai-interfaces-893ab96988f6" target="_blank" rel="noopener">7 Key Design Patterns for AI Interfaces</a><span class="src-domain">uxplanet.org</span></li>
+          <li><a href="https://blog.logrocket.com/ux-design/ai-driven-ux-design-patterns/" target="_blank" rel="noopener">How to Design AI Features That Actually Improve User Experience</a><span class="src-domain">blog.logrocket.com</span></li>
+          <li><a href="https://www.koruux.com/ai-patterns-for-ui-design/" target="_blank" rel="noopener">14 Key AI Patterns for Designers Building Smarter AI Products</a><span class="src-domain">koruux.com</span></li>
+          <li><a href="https://landbot.io/blog/guide-to-conversational-design" target="_blank" rel="noopener">Conversation Design for Chatbots: The Ultimate Guide</a><span class="src-domain">landbot.io</span></li>
+          <li><a href="https://www.patternfly.org/patternfly-ai/conversation-design/" target="_blank" rel="noopener">PatternFly — Conversation Design</a><span class="src-domain">patternfly.org</span></li>
+          <li><a href="https://think.design/blog/future-of-proactive-ux-design/" target="_blank" rel="noopener">Proactive UX Design: Anticipating User Needs Before They Arise</a><span class="src-domain">think.design</span></li>
+          <li><a href="https://cxl.com/blog/netflix-design/" target="_blank" rel="noopener">Analyzing Netflix Design, UI and UX: Why It Creates Immersive Experiences</a><span class="src-domain">cxl.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 5-1 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

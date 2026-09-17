@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시스템 프롬프트와 페르소나 설계</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="3-4">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 3 · 프롬프트 엔지니어링</p>
+    <p class="eyebrow">Module 3-4</p>
+    <h1 class="title">시스템 프롬프트와 페르소나 설계</h1>
+    <p class="subtitle"><a class="term" href="#term-system-prompt">시스템 프롬프트</a>는 AI 어시스턴트에게 대화 시작 전에 한 번 심어주는 "지속되는 정체성·말투·규칙"이며, Claude Projects나 커스텀 GPT처럼 재사용 가능한 나만의 어시스턴트를 만드는 토대가 됩니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">Module 3-1~3-3에서는 "메시지 한 번을 어떻게 잘 쓸까"를 다뤘습니다. 구조를 갖춰 쓰고(3-1), 예시를 보여주고(3-2), 생각의 단계를 시키는(3-3) 것 모두 <strong>그 순간 보낸 메시지 하나</strong>에 적용되는 기술이었습니다. 이번 모듈은 다릅니다. 메시지 하나가 아니라, <strong>대화 전체 또는 어시스턴트를 쓸 때마다 매번 적용되는 "지속 설정"</strong>을 다룹니다.</p>
+
+    <h2 id="sec-distinction">1) 시스템 프롬프트 vs. 사용자 메시지 — 한 번 vs. 매번</h2>
+    <p>회사에 비유하면 이해가 빠릅니다. <strong>사용자 메시지</strong>는 직원에게 "오늘 이 보고서 하나만 요약해줘"라고 <strong>그때그때 시키는 일회성 업무 지시</strong>입니다. 반면 <a class="term" href="#term-system-prompt">시스템 프롬프트</a>는 그 직원을 <strong>채용할 때 건네는 직무기술서(job description)</strong>입니다 — "당신은 마케팅팀 카피라이터입니다. 항상 반말 대신 존댓말을 쓰고, 결과물은 항상 3가지 안을 제시하세요"처럼, 한 번 정해두면 그 직원이 앞으로 받는 <strong>모든 업무에 자동으로 깔리는 전제</strong>가 됩니다.</p>
+    <p>ChatGPT에서는 이를 "Custom Instructions(맞춤 설정)", Claude Projects에서는 "Project instructions(프로젝트 지침)"이라고 부르지만 원리는 같습니다. 사용자가 대화창에 아무것도 입력하지 않아도, 시스템 프롬프트는 이미 그 뒤에서 조용히 작동하고 있습니다.</p>
+    <div class="example-box"><strong>예시</strong> — 시스템 프롬프트 없이 "회의록 정리해줘"라고 매번 치면, 어떤 날은 개조식으로, 어떤 날은 줄글로 나옵니다. 반면 "회의록은 항상 [결정사항 → 담당자 → 기한] 순서의 표로 정리하라"는 시스템 프롬프트를 한 번 심어두면, 이후 "회의록 정리해줘"라는 짧은 한마디만으로도 매번 같은 형식이 나옵니다. <strong>사용자 메시지가 짧아져도 결과의 일관성은 오히려 올라갑니다.</strong></div>
+
+    <h2 id="sec-persona-design">2) 페르소나는 무엇으로 만들어지는가</h2>
+    <p>좋은 시스템 프롬프트는 보통 네 가지 요소로 구성됩니다.</p>
+    <p><strong>① 역할·전문성 (Role)</strong> — "당신은 누구인가"를 구체적으로 규정합니다. "도움을 주는 어시스턴트"보다 "10년 차 UX 라이터"처럼 좁고 구체적일수록 답변의 전문성과 어휘 선택이 확 달라집니다.</p>
+    <p><strong>② <a class="term" href="#term-tone-and-manner">톤앤매너</a> (Tone &amp; Manner)</strong> — 격식체인지 반말인지, 다정한지 단호한지, 유머를 섞는지 진지한지를 정합니다. 같은 내용도 톤앤매너에 따라 브랜드 인상이 완전히 달라지므로, 기획자가 가장 세심하게 조율해야 하는 항목입니다.</p>
+    <p><strong>③ 제약사항 (Constraints)</strong> — 지켜야 할 규칙입니다. "항상 한국어로 답한다", "항상 3가지 옵션을 제시한다", "전문 용어를 쓰지 않는다", "확신이 없으면 추측하지 말고 되묻는다" 같은 규칙이 여기 들어갑니다. 하지 말아야 할 것뿐 아니라 반드시 해야 할 것도 포함됩니다.</p>
+    <p><strong>④ 출력 습관 (Output habits)</strong> — 답변의 형식 습관입니다. "항상 마지막에 후속 질문 하나를 덧붙인다", "결과는 표로 정리한다", "글자 수는 200자 이내로 유지한다"처럼, 매 응답에 반복적으로 나타나야 하는 패턴을 지정합니다.</p>
+    <div class="example-box"><strong>포인트</strong> — 이 네 가지를 한 번에 완벽히 채우려 하지 않아도 됩니다. 역할과 상황만 짧게 적어 시작한 뒤, 실제 결과물을 보고 톤이 안 맞으면 톤앤매너 규칙을 추가하고, 형식이 들쭉날쭉하면 출력 습관을 추가하는 식으로 <strong>점진적으로 다듬는 것</strong>이 실무에서 더 잘 통합니다.</div>
+
+    <h2 id="sec-worked-example">3) 실전 예시 — "UX 카피라이터" 어시스턴트 만들기</h2>
+    <p>제품 화면의 에러 메시지, 버튼 문구, 빈 상태(empty state) 문구를 도와줄 "UX 카피라이터" 커스텀 어시스턴트를 만든다고 해봅시다. 아래는 실제로 Claude Projects나 커스텀 GPT의 지침 칸에 넣을 수 있는 시스템 프롬프트 예시입니다.</p>
+    <div class="example-box">
+      <strong>시스템 프롬프트 (한 번만 설정)</strong><br><br>
+      당신은 10년 차 프로덕트의 UX 라이터입니다.<br>
+      · 역할: 앱/웹 서비스의 마이크로카피(버튼, 에러 메시지, 빈 화면 안내)를 전문으로 다룹니다.<br>
+      · 톤앤매너: 사용자를 탓하지 않고, 다정하지만 늘어지지 않게. 반말 대신 부드러운 존댓말("~해 주세요", "~할 수 없어요")을 씁니다.<br>
+      · 제약사항: 전문 용어·기술 코드를 그대로 노출하지 않습니다. 문구는 한글 기준 40자를 넘기지 않습니다. 사용자가 다음에 뭘 해야 하는지 항상 알려줍니다.<br>
+      · 출력 습관: 결과는 항상 3가지 버전(간결형 / 친근형 / 격식형)으로 제시하고, 각 버전 옆에 언제 쓰면 좋은지 한 줄 설명을 붙입니다.
+    </div>
+    <p>이제 같은 요청을 시스템 프롬프트가 <strong>있을 때</strong>와 <strong>없을 때</strong>로 나눠 비교해 보겠습니다. 사용자가 입력하는 메시지는 단 한 줄, "에러 메시지 문구 좀 써줘"입니다.</p>
+    <div class="example-box">
+      <strong>시스템 프롬프트 없이</strong> (일반 어시스턴트, 맨입으로 질문)<br><br>
+      "어떤 상황의 에러인지 알려주시면 문구를 작성해 드릴게요. 예를 들어 네트워크 오류, 입력값 오류, 서버 오류 등 상황에 따라 문구가 달라집니다. 참고로 일반적인 에러 메시지 예시는 다음과 같습니다: '오류가 발생했습니다. 다시 시도해 주세요.' (Error code: 500)"<br><br>
+      → 상황 설명이 없어 되묻고, 예시도 딱 하나뿐이며 에러 코드 같은 기술적 표현이 그대로 노출됩니다. 톤도 매번 답변마다 달라질 수 있습니다.
+    </div>
+    <div class="example-box">
+      <strong>"UX 카피라이터" 시스템 프롬프트가 설정된 상태</strong><br><br>
+      "네트워크 연결 실패 상황의 에러 메시지를 3가지로 제안드려요.<br>
+      1) 간결형 — "인터넷 연결을 확인하고 다시 시도해 주세요." (모바일 앱의 짧은 배너 알림에 적합)<br>
+      2) 친근형 — "어라, 연결이 잠시 끊긴 것 같아요. 와이파이나 데이터를 확인한 뒤 다시 눌러주시겠어요?" (친근한 톤의 커머스 앱에 적합)<br>
+      3) 격식형 — "네트워크 연결이 원활하지 않습니다. 연결 상태를 확인한 후 다시 시도해 주십시오." (업무용/금융 서비스에 적합)"<br><br>
+      → 같은 한 줄 요청이었지만, 상황을 스스로 가정해 바로 제안하고, 항상 3가지 버전과 사용 맥락 설명이 따라오며, 에러 코드 같은 기술 용어는 노출되지 않습니다. <strong>이 일관성이 시스템 프롬프트가 만들어내는 차이입니다.</strong>
+    </div>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>구성 요소</th><th>한 줄 설명</th></tr></thead>
+      <tbody>
+        <tr><td>역할·전문성</td><td>"당신은 누구인가"를 구체적으로 규정 — 넓은 어시스턴트보다 좁고 명확한 전문가</td></tr>
+        <tr><td><a class="term" href="#term-tone-and-manner">톤앤매너</a></td><td>격식/캐주얼, 다정함/단호함 등 말투와 태도의 일관된 기준</td></tr>
+        <tr><td>제약사항</td><td>반드시 지켜야 할 규칙 — 언어, 분량, 금지 표현, 확인 절차 등</td></tr>
+        <tr><td>출력 습관</td><td>매 응답에 반복되어야 하는 형식 — 표, 옵션 개수, 후속 질문 등</td></tr>
+      </tbody>
+    </table>
+    <p>이 네 가지를 채운 <a class="term" href="#term-system-prompt">시스템 프롬프트</a>는 "한 번 잘 써두면 매번 다시 설명하지 않아도 되는 나만의 어시스턴트"를 만들어줍니다. 프롬프트 하나를 잘 쓰는 것(3-1~3-3)과, 프롬프트 위에 지속되는 정체성을 설계하는 것(3-4)은 서로 다른 층위의 기술입니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 여러분이 실무에서 실제로 반복해서 쓰고 싶은 어시스턴트 하나를 떠올려 보세요(예: 회의록 정리 담당, 기획서 톤 교정 담당, 고객 문의 답변 초안 담당). 역할·톤앤매너·제약사항·출력 습관 네 줄로 짧게 시스템 프롬프트를 직접 적어보세요. 다음 모듈(3-5. 반복 개선으로 프롬프트 다듬기)에서는 이렇게 만든 첫 초안을 실제 결과물을 보며 어떻게 점진적으로 고쳐나가는지, 그 반복 개선 루프를 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-system-prompt">
+      <div class="glossary-entry-head"><h3>시스템 프롬프트 (System Prompt)</h3><a class="back-link" href="#sec-distinction">↑ 본문으로</a></div>
+      <p>대화가 시작되기 전에 미리 설정해두어, 사용자가 어떤 메시지를 보내든 매번 조용히 적용되는 지침 계층입니다. AI의 역할, 말투, 지켜야 할 규칙, 답변 형식을 한 번 정의해두면 이후의 모든 대화에 일관되게 반영됩니다. ChatGPT의 "Custom Instructions", Claude Projects의 "Project instructions"가 바로 이 개념의 실제 구현체입니다. 예를 들어 "당신은 초등학교 5학년 눈높이로 설명하는 과학 선생님입니다"를 시스템 프롬프트로 넣어두면, 사용자가 이후 무엇을 물어도 그 눈높이로 답이 나옵니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-tone-and-manner">
+      <div class="glossary-entry-head"><h3>톤앤매너 (Tone &amp; Manner)</h3><a class="back-link" href="#sec-persona-design">↑ 본문으로</a></div>
+      <p>메시지를 전달하는 말투와 태도의 일관된 기준을 뜻합니다. 원래 브랜딩·마케팅에서 쓰이던 용어로, AI 페르소나 설계에서는 "존댓말인가 반말인가", "다정한가 사무적인가", "유머를 섞는가 진지한가" 같은 축을 구체적으로 지정하는 것을 말합니다. 예를 들어 같은 오류 안내도 "잘못 입력하셨습니다"(단호형)와 "어이쿠, 다시 한번 확인해 주시겠어요?"(친근형)는 톤앤매너 설정에 따라 전혀 다른 문장으로 나옵니다. 시스템 프롬프트에서 톤앤매너를 명시하지 않으면 응답마다 어조가 들쭉날쭉해질 수 있습니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://elevenlabs.io/ko/blog/what-is-a-system-prompt" target="_blank" rel="noopener">시스템 프롬프트란 무엇이며 AI 에이전트에서 어떻게 작동하나요?</a><span class="src-domain">elevenlabs.io</span></li>
+          <li><a href="https://brunch.co.kr/@aimmm/1" target="_blank" rel="noopener">시스템 프롬프트와 사용자 프롬프트</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://blog-ko.superb-ai.com/understanding-system-prompts-llm-response-determination/" target="_blank" rel="noopener">LLM의 답변을 결정하는 시스템 프롬프트란?</a><span class="src-domain">blog-ko.superb-ai.com</span></li>
+          <li><a href="https://coddy.tech/learn/ko/prompts/fundamentals/what_is_the_system_prompt" target="_blank" rel="noopener">시스템 프롬프트란 무엇인가?</a><span class="src-domain">coddy.tech</span></li>
+          <li><a href="https://insight.infograb.net/blog/2025/07/30/system-prompt/" target="_blank" rel="noopener">AI 행동 지침서 '시스템 프롬프트' 해부</a><span class="src-domain">insight.infograb.net</span></li>
+          <li><a href="https://potato-ai.xyz/system-prompt-ai-glossary/" target="_blank" rel="noopener">시스템 프롬프트란? AI 답변을 움직이는 숨은 지시문</a><span class="src-domain">potato-ai.xyz</span></li>
+          <li><a href="https://wikidocs.net/302086" target="_blank" rel="noopener">08 페르소나 도출을 위한 프롬프트 — AI로 경영하라</a><span class="src-domain">wikidocs.net</span></li>
+          <li><a href="https://brunch.co.kr/@ghidesigner/184" target="_blank" rel="noopener">UX/UI 프롬프트 엔지니어링: 페르소나 기법</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://blog.getporter.ai/%EC%8B%9C%EC%8A%A4%ED%85%9C-%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8-%EC%9E%91%EC%84%B1%EB%B2%95-ai-%EC%84%B1%EB%8A%A5-%ED%96%A5%EC%83%81%EC%9D%84-%EC%9C%84%ED%95%9C-%EC%8B%A4%EC%9A%A9%EC%A0%81-%EC%A0%91%EA%B7%BC-54074" target="_blank" rel="noopener">시스템 프롬프트 작성법: AI 성능 향상을 위한 실용적 접근</a><span class="src-domain">blog.getporter.ai</span></li>
+          <li><a href="https://dobiho.com/65218/" target="_blank" rel="noopener">챗GPT 커스텀 인스트럭션 설정 및 사례</a><span class="src-domain">dobiho.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/system-prompts" target="_blank" rel="noopener">Giving Claude a role with a system prompt</a><span class="src-domain">docs.claude.com</span></li>
+          <li><a href="https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents" target="_blank" rel="noopener">Effective context engineering for AI agents</a><span class="src-domain">anthropic.com</span></li>
+          <li><a href="https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/claude-prompting-best-practices" target="_blank" rel="noopener">Prompting best practices</a><span class="src-domain">platform.claude.com</span></li>
+          <li><a href="https://tetrate.io/learn/ai/system-prompts-guide" target="_blank" rel="noopener">System Prompts: Design Patterns and Best Practices</a><span class="src-domain">tetrate.io</span></li>
+          <li><a href="https://www.uxpin.com/studio/blog/ai-personas/" target="_blank" rel="noopener">AI Personas: How to Create, Validate &amp; Use AI-Generated UX Personas</a><span class="src-domain">uxpin.com</span></li>
+          <li><a href="https://medium.com/@stunspot/on-persona-prompting-8c37e8b2f58c" target="_blank" rel="noopener">On Persona Prompting: Language as LLM Control Surface</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://www.arsturn.com/blog/designing-ai-personas-insights-from-prompt-engineering" target="_blank" rel="noopener">Designing AI Personas Through Effective Prompt Engineering</a><span class="src-domain">arsturn.com</span></li>
+          <li><a href="https://miro.com/ai/prompts/persona-prompts/" target="_blank" rel="noopener">How to write better persona prompts with AI &amp; research</a><span class="src-domain">miro.com</span></li>
+          <li><a href="https://blog.stackademic.com/the-art-of-writing-great-system-prompts-abb22f8b8f37" target="_blank" rel="noopener">The Art of Writing Great System Prompts</a><span class="src-domain">blog.stackademic.com</span></li>
+          <li><a href="https://docs.stammer.ai/stammer.ai-docs/ai-features/prompting/writing-a-base-system-prompt" target="_blank" rel="noopener">Writing a Base System Prompt</a><span class="src-domain">docs.stammer.ai</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 3-4 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

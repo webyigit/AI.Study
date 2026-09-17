@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7-1. 최신 트렌드: 에이전틱 AI, 온디바이스 AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="7-1">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 7 · 트렌드, 윤리, 리스크</p>
+    <p class="eyebrow">Module 7-1</p>
+    <h1 class="title">최신 트렌드: 에이전틱 AI, 온디바이스 AI</h1>
+    <p class="subtitle">지금 업계에서 가장 많이 언급되는 두 방향을 정리합니다. 하나는 "AI가 무엇을 하는가"의 변화이고, 다른 하나는 "AI가 어디서 돌아가는가"의 변화입니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">"AI가 요즘 많이 바뀌고 있다"는 말은 사실 두 개의 서로 다른 축을 가리키는 경우가 많습니다. 하나는 <a class="term" href="#term-agentic">에이전틱 AI</a> — AI가 답만 하던 것에서 스스로 계획하고 실행까지 하는 쪽으로 옮겨가는 흐름이고, 다른 하나는 <a class="term" href="#term-ondevice">온디바이스 AI</a> — AI가 클라우드 서버가 아니라 내 스마트폰·노트북 안에서 직접 돌아가는 흐름입니다. 두 흐름은 서로 다른 질문에 답하고 있으므로, 섞어서 이해하지 않는 것이 중요합니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 620 260" width="620" height="260" role="img" aria-label="일반 생성형 AI의 질문-답변 구조와 에이전틱 AI의 목표-계획-실행-확인 순환 구조를 비교하는 다이어그램">
+        <text x="150" y="26" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--ink)">일반 생성형 AI</text>
+        <rect x="60" y="50" width="180" height="46" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="150" y="78" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" fill="var(--ink)">질문 (프롬프트)</text>
+        <line x1="150" y1="96" x2="150" y2="124" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+        <rect x="60" y="128" width="180" height="46" rx="8" fill="var(--accent-soft)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="150" y="156" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" fill="var(--accent-strong)" font-weight="600">답변 (텍스트)</text>
+        <text x="150" y="205" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12" fill="var(--ink-faint)">한 번 응답하면 끝</text>
+
+        <text x="460" y="26" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--ink)">에이전틱 AI</text>
+        <circle cx="460" cy="140" r="92" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="3 4"/>
+        <rect x="415" y="48" width="90" height="40" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="460" y="72" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12" fill="var(--ink)">목표 설정</text>
+        <rect x="505" y="120" width="90" height="40" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="550" y="144" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12" fill="var(--ink)">계획 수립</text>
+        <rect x="415" y="192" width="90" height="40" rx="8" fill="var(--accent-soft)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="460" y="216" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12" fill="var(--accent-strong)" font-weight="600">도구 실행</text>
+        <rect x="325" y="120" width="90" height="40" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="370" y="144" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12" fill="var(--ink)">결과 확인</text>
+        <path d="M 460 88 A 92 92 0 0 1 546 122" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+        <path d="M 552 160 A 92 92 0 0 1 497 210" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+        <path d="M 424 214 A 92 92 0 0 1 372 160" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+        <path d="M 368 122 A 92 92 0 0 1 418 76" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+        <defs>
+          <marker id="arrow1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="var(--ink-faint)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <h2 id="sec-agentic">1) <a class="term" href="#term-agentic">에이전틱 AI</a> — 답변에서 실행으로</h2>
+    <p>지금까지 익숙한 생성형 AI 사용 방식은 "질문하면 답한다"였습니다. 사람이 매 단계마다 다시 질문을 던져야 다음 단계로 넘어갔습니다. 에이전틱 AI는 여기서 한 걸음 더 나아가, 사람이 "목표"만 주면 AI가 그 목표를 이루기 위한 <strong>세부 단계를 스스로 계획하고, 필요한 도구(검색, 파일 조회, 다른 프로그램 실행 등)를 스스로 호출하고, 중간 결과를 보고 다음 행동을 조정</strong>합니다. Phase 2에서 다룬 "AI 에이전트가 여러 단계를 이어서 처리한다"는 개념이 지금 업계에서 가장 활발하게 상용화되고 있는 방향이 바로 이것입니다.</p>
+    <div class="example-box"><strong>예시</strong> — "다음 주 화요일 오후에 팀 회의 잡아줘"라고만 말하면, 일반 챗봇은 "일정 등록 방법을 알려드릴게요" 정도로 답하고 끝나지만, 에이전틱 AI는 팀원들의 캘린더를 조회하고, 겹치지 않는 시간을 찾고, 회의실을 예약하고, 초대장을 보내는 것까지 실제로 수행합니다.</p>
+    <p>다만 자율성이 커진 만큼 "AI가 중간에 잘못된 판단을 내리면 어떻게 되는가"라는 새로운 리스크도 함께 커집니다. 이 부분은 이 Phase의 7-4(프라이버시·보안)에서 조금 더 다룹니다.</p>
+
+    <h2 id="sec-ondevice">2) <a class="term" href="#term-ondevice">온디바이스 AI</a> — 클라우드에서 기기 안으로</h2>
+    <p>지금까지 대부분의 AI 서비스는 사용자의 요청을 <strong>클라우드 서버로 전송</strong>해서 그곳의 대형 모델이 처리한 뒤 결과만 돌려받는 방식이었습니다. 온디바이스 AI는 이 처리 과정 자체를 스마트폰, 노트북, 자동차 등 <strong>기기 내부의 칩(NPU 등)</strong>에서 직접 실행합니다. 인터넷 연결 없이도 동작하고, 응답 속도가 빠르며, 사용자의 데이터가 기기 밖으로 나가지 않는다는 점이 특징입니다.</p>
+    <div class="example-box"><strong>예시</strong> — 최근 출시되는 스마트폰의 "실시간 통역", "문자 자동 요약", "사진 속 인물 지우기" 같은 기능 중 상당수는 인터넷 연결 없이도 동작하도록 설계되어 있는데, 이는 해당 기능이 온디바이스로 처리되기 때문인 경우가 많습니다.</p>
+    <p>다만 기기 안에 들어가는 모델은 배터리·발열·메모리 제약 때문에 클라우드의 초대형 모델보다 훨씬 작게 압축된 <a class="term" href="#term-slm">소형 언어모델(sLM)</a>을 쓰는 경우가 많아서, 복잡한 추론이 필요한 작업에서는 아직 클라우드 모델만큼의 성능을 내기 어렵다는 한계도 함께 알려져 있습니다.</p>
+
+    <h2 id="sec-why">3) 왜 두 흐름이 동시에 주목받는가</h2>
+    <p>에이전틱 AI는 "AI가 무엇을 할 수 있는가"라는 <strong>능력의 축</strong>이고, 온디바이스 AI는 "AI가 어디서 실행되는가"라는 <strong>배치(장소)의 축</strong>입니다. 이 둘은 서로 배타적이지 않아서, 앞으로는 "기기 안에서 가볍게 돌아가면서도 여러 단계를 스스로 처리하는" 형태로 두 흐름이 합쳐지는 방향도 업계에서 자주 언급되는 추세입니다. 다만 아직 구체적인 상용 사례나 성능 수준은 계속 변하고 있는 영역이라, 특정 제품의 성능을 단정적으로 말하기보다는 "이런 방향으로 움직이고 있다" 정도로 이해하는 것이 안전합니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>구분</th><th>무엇이 바뀌는가</th><th>기획자가 볼 지점</th></tr></thead>
+      <tbody>
+        <tr><td><a class="term" href="#term-agentic">에이전틱 AI</a></td><td>답변만 하던 AI가 목표를 받아 스스로 계획·실행까지 담당</td><td>중간 판단을 어디까지 맡길지, 오작동 시 대응 절차</td></tr>
+        <tr><td><a class="term" href="#term-ondevice">온디바이스 AI</a></td><td>처리 위치가 클라우드 서버에서 기기 내부로 이동</td><td>오프라인 대응, 응답 속도, 민감정보 처리 방식</td></tr>
+      </tbody>
+    </table>
+    <p>두 트렌드 모두 "더 똑똑해진다"기보다 "AI가 일하는 방식과 장소가 달라진다"는 쪽에 가깝습니다. 제품 기획 관점에서는 이 변화가 사용자 경험(속도, 오프라인 지원)과 리스크 관리(자율성, 데이터 처리 위치) 양쪽에 동시에 영향을 준다는 점을 기억해두면 좋습니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — "에이전틱 AI"와 "온디바이스 AI"가 서로 다른 축을 가리킨다는 것을 스스로 한 문장씩 설명해보세요. 다음 모듈(7-2. AI 윤리와 편향 문제)에서는 이런 AI가 실제로 제품에 적용될 때 생기는 공정성 문제를 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-agentic">
+      <div class="glossary-entry-head"><h3>에이전틱 AI (Agentic AI)</h3><a class="back-link" href="#sec-agentic">↑ 본문으로</a></div>
+      <p>사람이 세부 지시를 매번 내리지 않아도, 목표를 이해하고 스스로 단계를 계획하고 도구를 호출해 실행까지 수행하는 AI 시스템을 말합니다. 자율성(사람 개입 최소화), 적응력(중간 결과를 보고 계획 수정), 목표 지향성(구체적 결과물 산출)이 핵심 특징으로 꼽힙니다. 생성형 AI가 "답변"에 집중한다면, 에이전틱 AI는 "행동"에 집중한다는 점에서 구분됩니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-ondevice">
+      <div class="glossary-entry-head"><h3>온디바이스 AI (On-device AI)</h3><a class="back-link" href="#sec-ondevice">↑ 본문으로</a></div>
+      <p>클라우드 서버로 데이터를 보내지 않고, 스마트폰·PC·자동차 등 기기 자체의 프로세서(NPU, GPU 등)에서 AI 모델의 추론을 실행하는 방식입니다. 네트워크 왕복 시간이 없어 응답이 빠르고, 오프라인에서도 동작하며, 민감한 데이터가 기기 밖으로 나가지 않는다는 장점이 있는 반면, 하드웨어 제약 때문에 모델 크기와 성능에 한계가 있습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-tool-use">
+      <div class="glossary-entry-head"><h3>툴 사용 / 함수 호출 (Tool Use)</h3><a class="back-link" href="#sec-agentic">↑ 본문으로</a></div>
+      <p>AI 모델이 텍스트 생성만 하는 것이 아니라, 검색 엔진 조회, 캘린더 등록, 코드 실행 같은 외부 기능(도구)을 스스로 판단해 호출하는 능력입니다. 에이전틱 AI가 실제로 "행동"할 수 있게 만드는 핵심 기술 요소로, 어떤 도구를 어떤 권한으로 호출할 수 있게 허용하느냐가 안전성을 좌우합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-npu">
+      <div class="glossary-entry-head"><h3>NPU (Neural Processing Unit)</h3><a class="back-link" href="#sec-ondevice">↑ 본문으로</a></div>
+      <p>인공신경망 연산에 특화된 전용 칩입니다. 최근 스마트폰과 노트북에 탑재되어, 클라우드로 데이터를 보내지 않고도 기기 내부에서 AI 추론을 빠르고 전력 효율적으로 처리할 수 있게 해줍니다. 온디바이스 AI가 실용적으로 가능해진 것은 이 NPU 성능이 꾸준히 향상된 덕분이라고 알려져 있습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-slm">
+      <div class="glossary-entry-head"><h3>소형 언어모델 (sLM, Small Language Model)</h3><a class="back-link" href="#sec-ondevice">↑ 본문으로</a></div>
+      <p>수백억~수천억 파라미터의 초대형 LLM과 달리, 기기의 제한된 메모리·배터리 안에서도 돌아가도록 파라미터 수를 크게 줄이고 압축한 모델입니다. 번역, 요약, 음성 인식처럼 비교적 명확한 작업에서는 실용적인 성능을 보이지만, 복잡한 추론에서는 대형 클라우드 모델과 차이가 있는 경우가 많습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-cloud-ai">
+      <div class="glossary-entry-head"><h3>클라우드 AI (Cloud AI)</h3><a class="back-link" href="#sec-ondevice">↑ 본문으로</a></div>
+      <p>사용자의 요청을 인터넷을 통해 원격 서버로 전송하고, 그곳의 대형 모델이 연산을 수행한 뒤 결과를 돌려주는 전통적인 AI 서비스 방식입니다. 대형 모델을 활용할 수 있어 성능이 높지만, 네트워크 상태에 의존하고 데이터가 외부 서버를 거친다는 특징이 있어 온디바이스 AI와 자주 대비됩니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://www.salesforce.com/kr/agentforce/what-is-agentic-ai/" target="_blank" rel="noopener">에이전틱 AI란 무엇인가요? 스스로 생각하고 실행하는 차세대 인공지능 가이드</a><span class="src-domain">salesforce.com</span></li>
+          <li><a href="https://www.salesforce.com/kr/hub/business/what-is-agentic-ai/" target="_blank" rel="noopener">에이전틱 AI란 무엇인가요?</a><span class="src-domain">salesforce.com</span></li>
+          <li><a href="https://www.uipath.com/ko/ai/agentic-ai" target="_blank" rel="noopener">에이전틱 AI란?</a><span class="src-domain">uipath.com</span></li>
+          <li><a href="https://blogs.nvidia.co.kr/blog/what-is-agentic-ai/" target="_blank" rel="noopener">에이전틱 AI란 무엇인가?</a><span class="src-domain">blogs.nvidia.co.kr</span></li>
+          <li><a href="https://www.trendmicro.com/ko_kr/what-is/ai/agentic-ai.html" target="_blank" rel="noopener">에이전틱 AI란?</a><span class="src-domain">trendmicro.com</span></li>
+          <li><a href="https://www.cloudflare.com/learning/ai/what-is-agentic-ai/" target="_blank" rel="noopener">에이전틱 AI란? AI 에이전트의 작동 방식</a><span class="src-domain">cloudflare.com</span></li>
+          <li><a href="https://www.samsungsds.com/kr/insights/ondevice-ai-and-cloud-ai.html" target="_blank" rel="noopener">클라우드 AI vs 온디바이스 AI: 공존과 진화의 방향</a><span class="src-domain">samsungsds.com</span></li>
+          <li><a href="https://magazine.cheil.com/54980" target="_blank" rel="noopener">일상을 바꿀 내 손 안의 AI, 온디바이스 AI</a><span class="src-domain">magazine.cheil.com</span></li>
+          <li><a href="https://blog.blomi.kr/%EC%98%A8%EB%94%94%EB%B0%94%EC%9D%B4%EC%8A%A4-ai%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80-%ED%81%B4%EB%9D%BC%EC%9A%B0%EB%93%9C%EC%99%80%EC%9D%98-%EC%B0%A8%EC%9D%B4%EB%B6%80%ED%84%B0-%ED%95%B5/" target="_blank" rel="noopener">온디바이스 AI란 무엇인가: 클라우드와의 차이부터 핵심 기술과 미래 전망까지</a><span class="src-domain">blog.blomi.kr</span></li>
+          <li><a href="https://koreadeep.com/blog/on-device-ai" target="_blank" rel="noopener">온디바이스 AI란? 지금 주목받는 이유</a><span class="src-domain">koreadeep.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.tiledb.com/blog/what-is-agentic-ai" target="_blank" rel="noopener">What is agentic AI: A comprehensive 2026 guide</a><span class="src-domain">tiledb.com</span></li>
+          <li><a href="https://mitsloan.mit.edu/ideas-made-to-matter/agentic-ai-explained" target="_blank" rel="noopener">Agentic AI, explained</a><span class="src-domain">mitsloan.mit.edu</span></li>
+          <li><a href="https://www.mindstudio.ai/blog/what-is-the-agentic-era-google-io-2026" target="_blank" rel="noopener">What Is the Agentic Era? How Google I/O 2026 Defined the Next Phase of AI</a><span class="src-domain">mindstudio.ai</span></li>
+          <li><a href="https://www.insentragroup.com/us/insights/not-geek-speak/generative-ai/agentic-ai-takes-the-wheel-a-deep-dive-into-2026/" target="_blank" rel="noopener">Agentic AI Takes the Wheel: A Deep Dive into 2026</a><span class="src-domain">insentragroup.com</span></li>
+          <li><a href="https://www.arm.com/markets/edge-ai" target="_blank" rel="noopener">Edge AI for consumer devices: fast, efficient on-device AI</a><span class="src-domain">arm.com</span></li>
+          <li><a href="https://www.netclues.com/blog/on-device-ai-privacy-first-apps" target="_blank" rel="noopener">On-Device AI: How Privacy-First Apps Work Without Cloud</a><span class="src-domain">netclues.com</span></li>
+          <li><a href="https://www.couchbase.com/blog/on-device-ai/" target="_blank" rel="noopener">On-Device AI: Benefits, Use Cases, and Challenges</a><span class="src-domain">couchbase.com</span></li>
+          <li><a href="https://www.f22labs.com/blogs/what-is-on-device-ai-a-complete-guide/" target="_blank" rel="noopener">What Is On-Device AI? A Complete Guide for 2026</a><span class="src-domain">f22labs.com</span></li>
+          <li><a href="https://www.analyticsinsight.net/artificial-intelligence/edge-ai-why-artificial-intelligence-is-moving-from-the-cloud-to-devices" target="_blank" rel="noopener">Edge AI: Why Artificial Intelligence is Moving from the Cloud to Devices</a><span class="src-domain">analyticsinsight.net</span></li>
+          <li><a href="https://thebackenddevelopers.substack.com/p/edge-ai-on-mobile-devices-in-2026" target="_blank" rel="noopener">Edge AI on Mobile Devices in 2026: On-Device Inference, Battery, and Privacy</a><span class="src-domain">thebackenddevelopers.substack.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 7-1 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

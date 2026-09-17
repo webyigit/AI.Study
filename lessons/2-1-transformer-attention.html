@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2-1. Transformer와 어텐션, 직관적으로 이해하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="2-1">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 2 · LLM 제대로 이해하기</p>
+    <p class="eyebrow">Module 2-1</p>
+    <h1 class="title">Transformer와 어텐션, 직관적으로 이해하기</h1>
+    <p class="subtitle">LLM이 문장 속 단어들의 관계를 어떻게 파악하는지, 수식 없이 "셀프 어텐션"이라는 핵심 아이디어부터 차근차근 이해합니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">Phase 1에서 LLM이 토큰 단위로 다음 단어를 예측한다는 것을 배웠습니다. 그런데 모델은 문장 속 단어 하나하나의 "의미"를 어떻게 파악할까요? 그 답이 바로 <a class="term" href="#term-self-attention">셀프 어텐션(Self-Attention)</a>입니다. 그리고 이 계산이 <a class="term" href="#term-parallel">병렬처리</a>로 이루어진다는 사실이, 오늘날의 거대 LLM이 가능해진 핵심 이유 중 하나입니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 660 270" width="660" height="270" role="img" aria-label="그녀는이라는 단어가 앞의 다른 단어들을 바라보며 관련도를 계산하는 셀프 어텐션 다이어그램. 영희에게로 가는 선이 가장 굵다.">
+        <rect x="12" y="60" width="96" height="34" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <rect x="116" y="60" width="96" height="34" rx="8" fill="var(--surface-raised)" stroke="var(--accent-strong)" stroke-width="2"/>
+        <rect x="220" y="60" width="96" height="34" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <rect x="324" y="60" width="96" height="34" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <rect x="428" y="60" width="96" height="34" rx="8" fill="var(--accent-soft)" stroke="var(--accent-strong)" stroke-width="2"/>
+        <rect x="532" y="60" width="96" height="34" rx="8" fill="var(--surface-raised)" stroke="var(--line-soft)" stroke-width="1.5"/>
+
+        <text x="60" y="81" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--ink-soft)">철수는</text>
+        <text x="164" y="81" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" font-weight="700" fill="var(--accent-strong)">영희에게</text>
+        <text x="268" y="81" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--ink-soft)">책을</text>
+        <text x="372" y="81" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--ink-soft)">주었다</text>
+        <text x="476" y="81" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" font-weight="700" fill="var(--ink)">그녀는</text>
+        <text x="580" y="81" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--ink-faint)">고마워했다</text>
+
+        <path d="M476,94 Q268,215 60,94" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" opacity="0.35"/>
+        <path d="M476,94 Q320,190 164,94" fill="none" stroke="var(--accent-strong)" stroke-width="5" opacity="0.95"/>
+        <path d="M476,94 Q372,180 268,94" fill="none" stroke="var(--ink-faint)" stroke-width="2" opacity="0.4"/>
+        <path d="M476,94 Q424,155 372,94" fill="none" stroke="var(--ink-faint)" stroke-width="1.5" opacity="0.3"/>
+
+        <line x1="240" y1="240" x2="280" y2="240" stroke="var(--ink-faint)" stroke-width="1.5" opacity="0.4"/>
+        <text x="286" y="244" font-family="'IBM Plex Mono', monospace" font-size="11" fill="var(--ink-faint)">약한 연관</text>
+        <line x1="380" y1="240" x2="420" y2="240" stroke="var(--accent-strong)" stroke-width="5" opacity="0.95"/>
+        <text x="426" y="244" font-family="'IBM Plex Mono', monospace" font-size="11" fill="var(--ink-faint)">강한 연관</text>
+      </svg>
+    </div>
+
+    <h2 id="sec-attention">1) 셀프 어텐션 — 단어가 서로를 바라보는 방법</h2>
+    <p>셀프 어텐션은 문장 속 한 단어가, 같은 문장에 있는 다른 모든 단어를 "한 번씩 둘러보면서" 각각이 자신의 의미를 이해하는 데 얼마나 중요한지 점수를 매기는 계산입니다. 이 점수를 흔히 <strong>어텐션 가중치(attention weight)</strong>라고 부릅니다. 점수가 높을수록 그 단어의 정보가 지금 단어의 의미를 결정하는 데 더 많이 반영됩니다.</p>
+    <p>왜 이런 계산이 필요할까요? 같은 단어라도 문맥에 따라 뜻이 완전히 달라지기 때문입니다. 예를 들어 "배"라는 단어는 문맥에 따라 과일(배), 신체 부위(배), 탈것(배)을 가리킬 수 있습니다. 단어 자체만 보면 뜻을 정할 수 없고, <strong>주변에 어떤 단어가 있는지</strong>를 봐야 비로소 의미가 정해집니다. 셀프 어텐션은 바로 이 "주변 단어와의 관련도"를 수치화해서, 각 단어의 의미를 문맥에 맞게 새로 조정하는 역할을 합니다. "Self(자기 자신)"라는 이름이 붙은 이유도, 비교 대상이 다른 문서나 다른 문장이 아니라 <strong>같은 문장 안의 단어들끼리</strong>이기 때문입니다.</p>
+
+    <h2 id="sec-example">2) 예시로 보기 — "그녀"는 누구를 가리킬까</h2>
+    <p>대명사가 누구를 가리키는지 알아내는 것(지시어 해소)은 언어를 이해하는 데 가장 까다로운 문제 중 하나입니다. 다음 두 문장을 봅시다.</p>
+    <div class="example-box">
+      <strong>예문</strong> — "철수는 영희에게 책을 주었다. 그녀는 고마워했다."<br><br>
+      두 번째 문장의 "그녀"라는 단어 자체에는 아무 정보가 없습니다. 성별이 여성이라는 것만 알 뿐, 누구를 가리키는지는 문맥을 봐야 압니다. 모델이 "그녀"를 처리할 때, 셀프 어텐션은 앞 문장의 모든 단어와 "그녀" 사이의 관련도를 계산합니다. 예시로 값을 매겨보면 대략 이런 식입니다.<br><br>
+      · 그녀 ↔ 영희에게 — <strong>0.62</strong> (여성 명사이자, 책을 받아 고마워할 주체이므로 관련도 높음)<br>
+      · 그녀 ↔ 철수는 — 0.15 (남성 명사라 대명사 "그녀"와는 관련도 낮음)<br>
+      · 그녀 ↔ 책을 — 0.14 (사물이라 대명사와 직접 연결되기 어려움)<br>
+      · 그녀 ↔ 주었다 — 0.09 (동사라 관련도가 더 낮지만, 누가 "받는 입장"인지 맥락을 보태 줌)<br><br>
+      (위 숫자는 이해를 돕기 위한 예시 값이며, 실제 모델이 계산하는 정확한 수치는 아닙니다.) 이 가중치대로 각 단어의 정보를 섞으면, "그녀"의 새로운 의미 표현은 "영희"의 정보를 가장 많이 담게 됩니다. 그 결과 모델은 "그녀 = 영희"라는 관계를 수식이 아니라 <strong>가중치 계산</strong>만으로 스스로 찾아내고, 이후 문장을 생성할 때도 이 관계에 맞춰 일관되게 이어갈 수 있습니다.
+    </div>
+    <p>위 다이어그램에서 "그녀는"이 다른 단어들을 향해 뻗은 선이 바로 이 어텐션 가중치입니다. "영희에게"로 가는 선이 가장 굵은 것은, 그만큼 강한 관련도를 학습했다는 뜻입니다. 참고로 셀프 어텐션은 보통 자기보다 <strong>앞에 나온 단어들</strong>을 바라봅니다. Phase 1에서 배운 자기회귀적(autoregressive) 다음 단어 예측과 같은 방향입니다 — 아직 생성되지 않은 뒷부분을 미리 들여다볼 수는 없기 때문입니다.</p>
+
+    <h2 id="sec-parallel">3) 병렬처리 — RNN과 근본적으로 다른 방식</h2>
+    <p>Transformer 이전의 언어 모델들은 주로 <a class="term" href="#term-rnn">RNN(순환신경망)</a> 구조를 사용했습니다. RNN은 문장을 단어 순서대로 <strong>하나씩</strong> 읽습니다. 첫 단어를 읽고 요약 정보("은닉 상태")를 만든 다음, 그 요약 정보를 들고 두 번째 단어로 넘어가고, 다시 요약을 업데이트해서 세 번째 단어로 넘어가는 식입니다. 즉 N번째 단어를 처리하려면 반드시 N-1번째 단어의 처리가 먼저 끝나 있어야 합니다.</p>
+    <p>이 방식에는 두 가지 문제가 있었습니다. 첫째, <strong>느립니다</strong> — 순서를 기다려야 하니 한 단어씩 밖에 계산할 수 없습니다. 둘째, <strong>앞부분을 잊어버립니다</strong> — 문장이 길어질수록, 맨 처음 단어의 정보는 계속 요약되고 덮어써지면서 점점 희미해집니다. 100번째 단어를 처리할 때쯤이면 2번째 단어의 정보는 거의 남아있지 않은 경우가 많았습니다.</p>
+    <p>셀프 어텐션은 이 구조를 완전히 바꿨습니다. 어떤 단어와 다른 단어 사이의 관련도를 계산하는 데 "순서대로 거쳐 온 요약 정보"가 필요 없습니다. 모든 단어 쌍의 관련도를 각각 독립적으로, 동시에 계산할 수 있습니다. 즉 문장에 있는 모든 단어의 어텐션 계산을 <strong>한꺼번에 병렬로</strong> 처리할 수 있다는 뜻입니다. RNN처럼 앞 단어의 처리가 끝나기를 기다릴 필요가 없습니다.</p>
+
+    <h2 id="sec-scale">4) 왜 병렬처리가 Transformer를 거대하게 키웠는가</h2>
+    <p>GPU는 수천 개의 작은 연산 코어가 동시에 비슷한 계산(주로 행렬 곱셈)을 처리하도록 설계된 하드웨어입니다. RNN의 순차 구조는 "한 단어씩 순서대로"만 계산할 수 있었기 때문에, 이 GPU의 강점을 제대로 활용하지 못했습니다 — 대부분의 코어가 자기 차례를 기다리며 놀고 있는 셈이었습니다.</p>
+    <p>반면 셀프 어텐션의 계산은 처음부터 끝까지 행렬 곱셈으로 표현할 수 있고, 앞서 설명했듯 모든 단어 쌍을 동시에 처리합니다. 이는 GPU가 가장 잘하는 작업과 정확히 일치합니다. 그 결과 같은 시간 안에 RNN보다 훨씬 많은 데이터를 학습시킬 수 있게 되었고, 여러 개의 GPU에 나눠 학습을 분산시키기도 훨씬 쉬워졌습니다.</p>
+    <p>2017년 "Attention Is All You Need" 논문에서 Transformer 구조가 처음 제안된 것도 이 지점이 핵심이었습니다. 성능이 조금 더 좋아서가 아니라, <strong>같은 시간과 비용으로 훨씬 더 크고 많은 데이터를 학습할 수 있다</strong>는 점이 결정적이었습니다. 모델과 데이터를 계속 키워도 감당 가능한 시간 안에 학습을 마칠 수 있게 되면서, 파라미터 수가 수십억~수천억 개에 달하는 오늘날의 LLM들이 등장할 수 있는 토대가 마련되었습니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>개념</th><th>한 줄 정의</th></tr></thead>
+      <tbody>
+        <tr><td><a class="term" href="#term-self-attention">셀프 어텐션</a></td><td>문장 속 모든 단어가 서로를 바라보며 관련도(가중치)를 계산하는 방식</td></tr>
+        <tr><td><a class="term" href="#term-rnn">RNN (이전 방식)</a></td><td>단어를 순서대로 하나씩 처리 — 느리고, 긴 문장에서 앞부분을 잊기 쉬움</td></tr>
+        <tr><td><a class="term" href="#term-parallel">병렬처리</a></td><td>모든 단어 쌍의 어텐션을 동시에 계산 → GPU 활용을 극대화</td></tr>
+        <tr><td>결과</td><td>방대한 데이터를 빠르게 학습 가능 → 오늘날의 거대 LLM으로 이어짐</td></tr>
+      </tbody>
+    </table>
+    <p>정리하면, 셀프 어텐션은 "문맥에 맞게 의미를 조정하는 방법"이고, 병렬처리는 그 계산 방식 덕분에 얻은 "속도와 규모의 이점"입니다. 이 둘이 합쳐져 Transformer가 RNN 시대의 한계를 넘어설 수 있었습니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — "그녀는 고마워했다"에서 모델이 "그녀"의 의미를 정하는 과정을 스스로 한 문장으로 설명해보세요. 그런데 어텐션이 모든 단어 쌍을 비교한다면, 문장이 아주 길어지면 계산량은 어떻게 될까요? 다음 모듈(2-2. 컨텍스트 윈도우와 토큰 제한)에서 이 질문을 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-self-attention">
+      <div class="glossary-entry-head"><h3>셀프 어텐션 (Self-Attention)</h3><a class="back-link" href="#sec-attention">↑ 본문으로</a></div>
+      <p>문장(시퀀스) 안의 각 단어가, 같은 문장에 있는 다른 모든 단어들과 얼마나 관련이 있는지 점수(가중치)를 계산하고, 그 가중치에 따라 각 단어의 표현을 문맥에 맞게 새로 조정하는 계산 방식입니다. Transformer 구조의 핵심 구성 요소이며, 비교 대상이 다른 문장이 아니라 같은 문장 안의 단어들이기 때문에 "Self(자기 자신)"라는 이름이 붙었습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-parallel">
+      <div class="glossary-entry-head"><h3>병렬처리 (Parallel Processing)</h3><a class="back-link" href="#sec-parallel">↑ 본문으로</a></div>
+      <p>여러 계산을 순서대로 하나씩 처리하지 않고, 동시에 한꺼번에 처리하는 방식입니다. 셀프 어텐션은 문장 속 모든 단어 쌍의 관련도를 서로 독립적으로 계산할 수 있어 병렬처리에 매우 적합하며, 이는 수천 개의 연산을 동시에 수행하는 GPU 하드웨어와 궁합이 좋아 대규모 데이터 학습을 가능하게 했습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-rnn">
+      <div class="glossary-entry-head"><h3>RNN (순환신경망, Recurrent Neural Network)</h3><a class="back-link" href="#sec-parallel">↑ 본문으로</a></div>
+      <p>Transformer 이전에 널리 쓰이던 신경망 구조로, 문장을 단어 순서대로 하나씩 읽으며 그때까지 읽은 내용을 요약한 "은닉 상태(hidden state)"를 다음 단어 처리로 넘겨주는 방식입니다. 순서대로만 계산할 수 있어 병렬처리가 어렵고, 문장이 길어질수록 앞쪽 단어의 정보가 계속 덮어써지며 희미해지는(잊혀지는) 경향이 있었습니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://wikidocs.net/31379" target="_blank" rel="noopener">16-01 트랜스포머(Transformer) - 딥 러닝을 이용한 자연어 처리 입문</a><span class="src-domain">wikidocs.net</span></li>
+          <li><a href="https://ratsgo.github.io/nlpbook/docs/language_model/tr_self_attention/" target="_blank" rel="noopener">Self Attention - ratsgo's NLPBOOK</a><span class="src-domain">ratsgo.github.io</span></li>
+          <li><a href="https://velog.io/@jhbale11/%EC%96%B4%ED%85%90%EC%85%98-%EB%A7%A4%EC%BB%A4%EB%8B%88%EC%A6%98Attention-Mechanism%EC%9D%B4%EB%9E%80-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80" target="_blank" rel="noopener">트랜스포머(Transformer)와 어텐션 매커니즘(Attention Mechanism)이란 무엇인가?</a><span class="src-domain">velog.io</span></li>
+          <li><a href="https://seul1230.github.io/blog/AI-transformer" target="_blank" rel="noopener">AI | 트랜스포머(Transformer) 쉽게 이해하기</a><span class="src-domain">seul1230.github.io</span></li>
+          <li><a href="https://f-lab.ai/en/insight/transformer-and-self-attention-20250919" target="_blank" rel="noopener">트랜스포머와 셀프 어텐션: 현대 NLP의 핵심 기술</a><span class="src-domain">f-lab.ai</span></li>
+          <li><a href="https://tilnote.io/en/pages/6a02cc7f84052e968d37d4f5" target="_blank" rel="noopener">Self-Attention 쉽게 이해하기</a><span class="src-domain">tilnote.io</span></li>
+          <li><a href="https://www.readcode.kr/learn/self-attention-mechanism" target="_blank" rel="noopener">셀프 어텐션 메커니즘 — 모든 것에 주목하기</a><span class="src-domain">readcode.kr</span></li>
+          <li><a href="https://zayunsna.github.io/blog/2023-09-05-self_attention/" target="_blank" rel="noopener">Self Attention에 대해 공부 | HK Playground</a><span class="src-domain">zayunsna.github.io</span></li>
+          <li><a href="https://ffighting.net/deep-learning-basic/%EB%94%A5%EB%9F%AC%EB%8B%9D-%ED%95%B5%EC%8B%AC-%EA%B0%9C%EB%85%90/attention-and-self-attention-in-deep-learning/" target="_blank" rel="noopener">Self Attention 설명: 최소한의 수식과 관련 논문으로 쉽게 이해하기</a><span class="src-domain">ffighting.net</span></li>
+          <li><a href="https://nlpinkorean.github.io/illustrated-transformer/" target="_blank" rel="noopener">The Illustrated Transformer (한국어 번역)</a><span class="src-domain">nlpinkorean.github.io</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.ibm.com/think/topics/self-attention" target="_blank" rel="noopener">What is self-attention?</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://www.ibm.com/think/topics/transformer-model" target="_blank" rel="noopener">What is a Transformer Model?</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://jalammar.github.io/illustrated-transformer/" target="_blank" rel="noopener">The Illustrated Transformer</a><span class="src-domain">jalammar.github.io</span></li>
+          <li><a href="https://huggingface.co/learn/llm-course/en/chapter1/4" target="_blank" rel="noopener">How do Transformers work?</a><span class="src-domain">huggingface.co</span></li>
+          <li><a href="https://www.3blue1brown.com/lessons/attention/" target="_blank" rel="noopener">Attention in transformers, step-by-step</a><span class="src-domain">3blue1brown.com</span></li>
+          <li><a href="https://theaisummer.com/self-attention/" target="_blank" rel="noopener">Why multi-head self attention works: math, intuitions and 10+1 hidden insights</a><span class="src-domain">theaisummer.com</span></li>
+          <li><a href="https://sebastianraschka.com/blog/2023/self-attention-from-scratch.html" target="_blank" rel="noopener">Understanding and Coding the Self-Attention Mechanism of LLMs From Scratch</a><span class="src-domain">sebastianraschka.com</span></li>
+          <li><a href="https://www.datacamp.com/blog/self-attention" target="_blank" rel="noopener">Self-Attention Explained: The Mechanism Powering Modern AI</a><span class="src-domain">datacamp.com</span></li>
+          <li><a href="https://dev.to/divyakush/self-attention-explained-without-the-heavy-math-3ip1" target="_blank" rel="noopener">Self-attention, explained without the heavy math</a><span class="src-domain">dev.to</span></li>
+          <li><a href="https://towardsdatascience.com/an-intuitive-explanation-of-self-attention-4f72709638e1/" target="_blank" rel="noopener">An Intuitive Explanation of Self Attention</a><span class="src-domain">towardsdatascience.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 2-1 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

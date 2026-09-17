@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zero-shot vs Few-shot</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="3-2">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 3 · 프롬프트 엔지니어링</p>
+    <p class="eyebrow">Module 3-2</p>
+    <h1 class="title">Zero-shot vs Few-shot</h1>
+    <p class="subtitle">어떤 날은 그냥 바로 물어보는 것만으로 충분하고, 어떤 날은 예시 두세 개를 먼저 보여주는 것만으로 결과물의 품질이 확 달라집니다. 이 모듈에서는 두 방식이 정확히 무엇이고 언제 어떤 것을 써야 하는지를 다룹니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">3-1에서 프롬프트를 <strong>Role · Context · Instruction · Format</strong> 네 요소로 나눠 짜는 법을 배웠습니다. 이번 모듈의 few-shot 예시들은 그 구조 어딘가에 새로 끼워 넣는 다섯 번째 조각이 아니라, <strong>Instruction 안에(혹은 별도의 Examples 덩어리로) 들어가서 "이렇게 하라"는 말을 "이런 식으로 하라"는 구체적인 견본으로 바꿔주는 역할</strong>을 합니다. Zero-shot과 few-shot의 차이는 결국 "그 견본을 넣을 것이냐 말 것이냐"의 차이입니다.</p>
+
+    <h2 id="sec-zeroshot">1) Zero-shot — 예시 없이 바로 지시하기</h2>
+    <p><strong>Zero-shot</strong>은 모델에게 예시를 하나도 보여주지 않고, 지시문(Instruction)만으로 바로 작업을 시키는 방식입니다. "다음 문장을 요약해줘", "이 문장의 감정을 분류해줘"처럼, 우리가 평소 챗봇에 던지는 질문 대부분이 사실 zero-shot입니다.</p>
+    <div class="example-box"><strong>예시</strong> — "다음 이메일 제목을 한 줄로 요약해줘: '안녕하세요, 지난주 문의드린 환불 건이 아직 처리되지 않아 다시 연락드립니다...'" 이렇게 묻는 순간이 전형적인 zero-shot입니다. 어떤 형식으로, 몇 글자로 요약할지에 대한 견본은 주지 않았습니다.</div>
+    <p>zero-shot의 장점은 단순합니다. 프롬프트가 짧고, 작성하는 데 시간이 거의 들지 않습니다. 모델이 사전에 학습한 지식만으로도 충분히 대답할 수 있는, 흔하고 정의가 명확한 작업이라면 이걸로 충분합니다.</p>
+
+    <h2 id="sec-fewshot">2) Few-shot — 예시를 몇 개 보여주고 시작하기</h2>
+    <p><strong>Few-shot</strong>은 본격적인 작업 요청 전에, 프롬프트 안에 "입력 → 원하는 출력" 짝을 2~3개 직접 적어 넣는 방식입니다. 이렇게 프롬프트 문장 속에 실제 견본을 <a class="term" href="#term-yesi-jegong">예시제공</a>하면, 모델은 그 견본들에 공통으로 깔린 규칙을 순간적으로 알아채고 다음 입력에도 같은 규칙을 적용합니다. 이를 모델이 <a class="term" href="#term-pattern-hakseub">패턴학습</a>을 한다고 표현합니다.</p>
+    <p>여기서 중요한 포인트는, 예시가 모델에게 알려주는 게 <strong>"무엇을 할지(주제)"가 아니라 "어떻게 할지(형식·기준·톤)"</strong>라는 점입니다. "감정을 분류해줘"라는 지시만으로도 모델은 이미 감정 분류가 뭔지 압니다. 모델이 모르는 건 "당신이 정확히 어떤 카테고리 이름을 쓰고 싶은지, 애매한 경우는 어느 쪽으로 몰지, 답을 몇 줄로 얼마나 자세히 쓰고 싶은지" 같은 세부 규칙입니다. 예시 2~3개는 이 세부 규칙을 말이 아니라 실물로 보여주는 가장 확실한 방법입니다.</p>
+    <div class="example-box"><strong>예시</strong> — "고객 피드백을 칭찬/불만/제안/혼합 중 하나로 분류해줘"라는 지시만 주면 모델은 네 카테고리의 경계를 자기 나름대로 추측합니다. 하지만 "혼합"으로 분류된 견본 하나를 미리 보여주면, 모델은 "아, 칭찬과 불만이 섞여 있으면 혼합으로 묶는구나"라는 기준을 그대로 따라 합니다.</p></div>
+
+    <h2 id="sec-when">3) 언제 무엇을 써야 할까</h2>
+    <p><strong>Zero-shot으로 충분한 경우</strong> — 작업이 단순하고, 흔하며(모델이 학습 과정에서 비슷한 케이스를 많이 봤을 것 같고), "정답"의 형태가 딱히 애매하지 않은 경우입니다. 예를 들어 "이 문장을 존댓말로 바꿔줘", "이 숫자를 반올림해줘" 같은 작업은 예시 없이도 결과가 충분히 안정적입니다.</p>
+    <p><strong>Few-shot이 값어치를 하는 경우</strong> — 다음 네 가지 신호 중 하나라도 해당되면 예시를 넣는 편이 낫습니다.</p>
+    <div class="example-box">
+      <strong>① 출력 형식이 애매할 때</strong> — "표로 정리해줘"보다 실제 표 한 줄을 보여주는 게 빠릅니다.<br>
+      <strong>② 특정 톤·스타일이 필요할 때</strong> — 브랜드 보이스, 존댓말 수위처럼 말로 설명하기 번거로운 것.<br>
+      <strong>③ 엣지케이스 처리가 중요할 때</strong> — "칭찬과 불만이 동시에 있으면 어떻게 하지?" 같은 경계 사례.<br>
+      <strong>④ 구조화된 출력을 매번 똑같은 형식으로 뽑아야 할 때</strong> — API에 넣을 JSON, 표 형식의 라벨링 등.
+    </div>
+    <p>대신 few-shot은 프롬프트 길이를 늘리고, 그만큼 토큰 비용도 커집니다. 그러니 "예시 없이 몇 번 시켜봤는데 결과가 들쭉날쭉하다"는 확인이 된 다음에 few-shot으로 넘어가는 것이 효율적인 순서입니다.</p>
+
+    <h2 id="sec-example">4) 실전 예제 — 고객 피드백 톤 분류하기</h2>
+    <p>같은 작업을 zero-shot과 few-shot으로 각각 시켜보면 차이가 눈에 보입니다. 과제는 "고객 피드백을 칭찬 / 불만 / 제안 / 혼합 중 하나로 분류하라"입니다.</p>
+
+    <div class="example-box">
+      <strong>(a) Zero-shot 프롬프트</strong><br>
+      "다음 고객 피드백의 톤을 분류해줘: '배송이 너무 늦어서 화가 나요. 그래도 포장은 예쁘게 잘 왔어요.'"<br><br>
+      <strong>그럴듯하지만 어정쩡한 출력</strong><br>
+      "이 피드백은 전반적으로 부정적입니다." — 카테고리 이름이 프롬프트에서 정한 네 가지("칭찬/불만/제안/혼합")와 다르고, 칭찬과 불만이 함께 있다는 사실이 "부정적"이라는 한 단어로 뭉개졌습니다. 게다가 같은 질문을 다시 던지면 이번엔 "혼합적인 의견입니다"처럼 답의 형식 자체가 매번 바뀔 수 있습니다.
+    </div>
+
+    <div class="example-box">
+      <strong>(b) Few-shot 프롬프트</strong><br>
+      "다음 고객 피드백을 칭찬 / 불만 / 제안 / 혼합 중 하나로 분류하고, 이유를 한 줄로 설명해줘.<br><br>
+      예시 1<br>
+      입력: "상담원분이 정말 친절했어요, 최고예요!"<br>
+      출력: 칭찬 — 상담원 응대에 대한 긍정적 평가만 담겨 있음<br><br>
+      예시 2<br>
+      입력: "앱이 자꾸 튕겨요. 빨리 고쳐주세요."<br>
+      출력: 불만 — 문제 제기와 개선 요청이지만 전체적으로 부정적 경험이 중심<br><br>
+      예시 3<br>
+      입력: "배송은 느렸지만 포장은 예뻤어요. 다음엔 배송만 더 빨랐으면 좋겠어요."<br>
+      출력: 혼합 — 부정적 경험(배송)과 긍정적 경험(포장)이 함께 있고 제안까지 포함됨<br><br>
+      이제 다음 피드백을 같은 형식으로 분류해줘:<br>
+      입력: "배송이 너무 늦어서 화가 나요. 그래도 포장은 예쁘게 잘 왔어요."<br>
+      출력:"<br><br>
+      <strong>개선된 출력</strong><br>
+      "혼합 — 배송 지연에 대한 불만과 포장에 대한 칭찬이 함께 있음" — 카테고리 이름, 출력 형식("카테고리 — 이유")이 예시와 정확히 일치하고, 칭찬과 불만이 섞인 엣지케이스도 "혼합"으로 올바르게 처리됐습니다.
+    </div>
+
+    <div class="example-box"><strong>(c) 무엇이 달라졌나</strong> — zero-shot 결과는 매번 다른 단어와 형식으로 답이 나올 수 있고, 혼합된 감정을 한쪽으로 뭉개는 경향이 있었습니다. few-shot에서는 ① 카테고리 이름이 항상 프롬프트에서 정한 네 개 중 하나로 고정되고, ② "카테고리 — 이유" 형식이 매번 그대로 유지되며, ③ 예시 3에서 미리 보여준 "혼합" 패턴 덕분에 비슷한 엣지케이스도 정확히 분류됩니다. 지시문의 내용은 거의 그대로인데, 예시 세 줄이 추가됐을 뿐입니다.</div>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>구분</th><th>Zero-shot</th><th>Few-shot</th></tr></thead>
+      <tbody>
+        <tr><td>프롬프트 길이</td><td>짧다 — 지시문 한두 문장</td><td>길다 — 지시문 + 예시 2~5개</td></tr>
+        <tr><td>적합한 상황</td><td>단순하고 흔하며 정의가 명확한 작업</td><td>형식이 애매하거나, 특정 톤·스타일이 필요하거나, 엣지케이스 처리가 중요하거나, 구조화된 출력을 일관되게 뽑아야 할 때</td></tr>
+        <tr><td>장점</td><td>빠르게 작성 가능, 토큰 비용이 적음</td><td>출력 형식·품질이 훨씬 일관되고 정확함</td></tr>
+        <tr><td>단점</td><td>애매한 케이스에서 결과가 들쭉날쭉할 수 있음</td><td>프롬프트가 길어져 토큰 비용 증가, 예시 품질이 나쁘면 오히려 역효과</td></tr>
+      </tbody>
+    </table>
+    <p>결론적으로 few-shot이 항상 더 좋은 건 아닙니다. 작업이 단순하면 zero-shot으로 끝내고, "결과가 매번 다르게 나온다" 싶을 때 <a class="term" href="#term-yesi-jegong">예시제공</a>으로 넘어가는 것이 순서입니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 최근에 썼던 zero-shot 프롬프트 하나를 골라, 예시 2개를 추가한 few-shot 버전으로 직접 바꿔보세요. 다음 모듈(3-3. Chain-of-Thought)에서는 모델이 답만 툭 내놓는 게 아니라, 그 답에 이르는 추론 과정을 단계적으로 "보여주게" 만드는 방법을 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-yesi-jegong">
+      <div class="glossary-entry-head"><h3>예시제공 (Example-Providing)</h3><a class="back-link" href="#sec-fewshot">↑ 본문으로</a></div>
+      <p>예시제공은 프롬프트 안에 "입력과 그에 대한 바람직한 출력" 짝을 실제 문장으로 적어 넣어주는 것을 말합니다. 지시문만 주는 것과 달리, 모델이 그대로 참고할 수 있는 구체적인 견본을 직접 보여준다는 점이 핵심입니다. 예를 들어 "피드백을 톤별로 분류하라"는 지시만 주는 대신, "입력: 배송이 너무 늦어요 → 출력: 불만" 같은 예시 2~3개를 프롬프트 문장 안에 함께 적어 넣는 것이 예시제공입니다. 예시제공을 하면 모델이 무엇을, 어떤 형식으로 답해야 하는지 훨씬 명확해져서 결과의 형식과 일관성이 크게 좋아집니다. 3-1에서 배운 프롬프트 구조 중 Instruction 부분이나 별도의 Examples 덩어리에 이 견본들을 넣어주면 됩니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-pattern-hakseub">
+      <div class="glossary-entry-head"><h3>패턴학습 (Pattern Learning, in-context learning)</h3><a class="back-link" href="#sec-fewshot">↑ 본문으로</a></div>
+      <p>패턴학습은 모델이 프롬프트에 주어진 몇 개의 예시만 보고, 그 예시들에 공통으로 깔린 입력-출력 규칙을 그 자리에서 파악해 다음 입력에 그대로 적용하는 현상을 말합니다. 모델을 다시 훈련시키는 것이 아니라 이번 대화 안에서만 일어나는 일시적인 적응이라, 흔히 "인컨텍스트 러닝(in-context learning)"이라고도 부릅니다. 예를 들어 "칭찬/불만/제안/혼합" 네 카테고리로 라벨링된 예시 3개를 보여주면, 모델은 "이 네 카테고리 중 하나로, 이 정도 형식으로 답하면 되는구나"라는 패턴을 스스로 학습해 다음 피드백에도 같은 규칙을 적용합니다. 패턴학습이 잘 일어나려면 예시들이 서로 다른 케이스(전형적인 칭찬, 전형적인 불만, 애매한 혼합 등)를 골고루 보여주는 것이 중요합니다. 예시가 서로 너무 비슷하면 모델이 그만큼 좁은 패턴만 배우게 됩니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://blog.kakaocloud.com/86" target="_blank" rel="noopener">프롬프트 엔지니어링이란 ② - 기초 기법 (제로샷, 퓨샷, 체이닝)</a><span class="src-domain">blog.kakaocloud.com</span></li>
+          <li><a href="https://heesight.com/entry/%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8-%EC%97%94%EC%A7%80%EB%8B%88%EC%96%B4%EB%A7%81-%EC%A0%9C%EB%A1%9C%EC%83%B7-vs-%ED%93%A8%EC%83%B7" target="_blank" rel="noopener">프롬프트 엔지니어링 - 제로샷 vs 퓨샷</a><span class="src-domain">heesight.com</span></li>
+          <li><a href="https://getpromptnest.com/ko/blog/few-shot-vs-zero-shot-prompting" target="_blank" rel="noopener">퓨샷 vs 제로샷 프롬프팅: 언제 어떤 방식을 써야 할까</a><span class="src-domain">getpromptnest.com</span></li>
+          <li><a href="https://potato-ai.xyz/zero-shot-prompting-ai-glossary/" target="_blank" rel="noopener">제로샷 프롬프팅이란? 예시 없이 AI에게 바로 지시하는 방법</a><span class="src-domain">potato-ai.xyz</span></li>
+          <li><a href="https://learnprompting.org/ko/docs/basics/few_shot" target="_blank" rel="noopener">퓨샷 프롬프팅</a><span class="src-domain">learnprompting.org</span></li>
+          <li><a href="https://wikidocs.net/231230" target="_blank" rel="noopener">1-3-4. Few-shot Prompt - 랭체인(LangChain) 입문부터 응용까지</a><span class="src-domain">wikidocs.net</span></li>
+          <li><a href="https://academy.codefriends.net/blog/few-shot-prompting" target="_blank" rel="noopener">몇 가지 예시와 함께 사용하는 퓨샷(Few-shot) 프롬프팅</a><span class="src-domain">academy.codefriends.net</span></li>
+          <li><a href="https://usingu.co.kr/ai-%ED%99%9C%EC%9A%A9-%EB%85%B8%ED%8A%B8/ai-prompt-guide/ai-%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8-%EA%B0%80%EC%9D%B4%EB%93%9C-3-few-shot-prompting/" target="_blank" rel="noopener">예시 기반 프롬프트 작성법 (Few-shot Prompting)</a><span class="src-domain">usingu.co.kr</span></li>
+          <li><a href="https://cloud.google.com/vertex-ai/generative-ai/docs/learn/prompts/few-shot-examples?hl=ko" target="_blank" rel="noopener">few shot examples</a><span class="src-domain">cloud.google.com</span></li>
+          <li><a href="https://modulabs.co.kr/blog/prompt-engineering" target="_blank" rel="noopener">프롬프트 엔지니어링 방법 예시 꿀팁 대방출 (feat. 앤드류 응)</a><span class="src-domain">modulabs.co.kr</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://docs.anthropic.com/en/docs/build-with-claude/prompt-engineering/multishot-prompting" target="_blank" rel="noopener">Use examples (multishot prompting) to guide Claude's behavior</a><span class="src-domain">docs.anthropic.com</span></li>
+          <li><a href="https://www.ibm.com/think/topics/zero-shot-vs-few-shot-prompting" target="_blank" rel="noopener">Zero-Shot vs Few-Shot Prompting</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://www.ibm.com/think/topics/few-shot-prompting" target="_blank" rel="noopener">What is few shot prompting?</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://www.vellum.ai/blog/zero-shot-vs-few-shot-prompting-a-guide-with-examples" target="_blank" rel="noopener">Zero-Shot vs Few-Shot prompting: A Guide with Examples</a><span class="src-domain">vellum.ai</span></li>
+          <li><a href="https://shelf.io/blog/zero-shot-and-few-shot-prompting/" target="_blank" rel="noopener">Zero-Shot vs. Few-Shot Prompting: Key Differences</a><span class="src-domain">shelf.io</span></li>
+          <li><a href="https://learnprompting.org/docs/basics/few_shot" target="_blank" rel="noopener">Shot-Based Prompting: Zero-Shot, One-Shot, and Few-Shot Prompting</a><span class="src-domain">learnprompting.org</span></li>
+          <li><a href="https://www.promptingguide.ai/techniques/fewshot" target="_blank" rel="noopener">Few-Shot Prompting</a><span class="src-domain">promptingguide.ai</span></li>
+          <li><a href="https://www.prompthub.us/blog/in-context-learning-guide" target="_blank" rel="noopener">In Context Learning Guide</a><span class="src-domain">prompthub.us</span></li>
+          <li><a href="https://genaiunplugged.substack.com/p/zero-shot-one-shot-and-few-shot-prompting" target="_blank" rel="noopener">Zero-Shot vs Few-Shot Prompting: Guide With Examples</a><span class="src-domain">genaiunplugged.substack.com</span></li>
+          <li><a href="https://medium.com/@akankshasinha247/few-shot-prompting-teaching-ai-with-just-a-few-examples-6819273fd6e2" target="_blank" rel="noopener">Few-Shot Prompting: Teaching AI With Just a Few Examples</a><span class="src-domain">medium.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 3-2 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

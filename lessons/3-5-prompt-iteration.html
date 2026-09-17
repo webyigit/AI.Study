@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3-5. 반복 개선(Iteration)으로 프롬프트 다듬기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="3-5">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 3 · 프롬프트 엔지니어링</p>
+    <p class="eyebrow">Module 3-5</p>
+    <h1 class="title">반복 개선(Iteration)으로 프롬프트 다듬기</h1>
+    <p class="subtitle">완벽한 프롬프트를 한 번에 쓰는 사람은 없습니다. 좋은 프롬프트는 "시도 → 진단 → 조정 → 비교"를 몇 번 반복해서 만들어지는 결과물입니다. 이번 모듈은 그 반복을 습관으로 만드는 법을 다룹니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">지금까지 3-1(역할·맥락·지시·형식 구조), 3-2(예시 제공), 3-3(단계적 사고), 3-4(시스템 프롬프트·페르소나)를 통해 프롬프트에 넣을 수 있는 재료를 배웠습니다. 그런데 이 재료를 아무리 잘 알아도, 첫 시도에 완벽한 결과가 나오는 경우는 거의 없습니다. 실제로 프롬프트를 잘 쓰는 사람과 못 쓰는 사람의 차이는 "처음부터 잘 쓰는 능력"이 아니라, <strong>잘못된 부분을 빠르게 찾아 한 곳씩 고치는 습관</strong>에 있습니다.</p>
+
+    <h2 id="sec-loop">1) 반복 개선의 기본 루프: 시도 → 진단 → 조정 → 비교</h2>
+    <p>좋은 프롬프트는 네 단계를 도는 순환 구조로 만들어집니다.</p>
+    <div class="example-box">
+      <strong>① 시도(Try)</strong> — 일단 프롬프트를 써서 결과를 받아본다.<br>
+      <strong>② 진단(Diagnose)</strong> — 결과의 어디가, 왜 아쉬운지 구체적으로 짚는다. "그냥 별로다"가 아니라 "톤이 너무 딱딱하다", "형식을 안 지켰다"처럼 원인을 한 문장으로 표현한다.<br>
+      <strong>③ 조정(Adjust)</strong> — 진단한 원인에 해당하는 <strong>변수 하나만</strong> 바꾼다. 동시에 여러 개를 고치지 않는다.<br>
+      <strong>④ 비교(Compare)</strong> — 새 결과를 이전 결과, 그리고 애초에 원했던 것과 나란히 놓고 무엇이 실제로 좋아졌는지 확인한다.
+    </div>
+    <p>여기서 가장 중요한 규칙은 <strong>③에서 한 번에 한 가지만 바꾸는 것</strong>입니다. 톤도 바꾸고, 형식도 바꾸고, 길이도 바꾸면 다음번에 같은 문제가 또 생겨도 "그때 정확히 뭘 고쳐서 좋아졌는지" 알 수 없습니다. 한 번에 하나씩 바꿔야 "이 문제엔 이 레버"라는 나만의 데이터가 쌓입니다.</p>
+
+    <h2 id="sec-failure-patterns">2) 자주 보이는 실패 패턴과, 어떤 레버를 당길지</h2>
+    <p>진단을 빠르게 하려면 결과물이 아쉬운 이유를 몇 가지 유형으로 나눠 알아두면 좋습니다. 아래는 기획·UX 업무에서 특히 자주 만나는 6가지 실패 패턴과, 3-1~3-4에서 배운 어떤 기법으로 고치면 되는지입니다.</p>
+    <table class="summary">
+      <thead><tr><th>증상</th><th>원인 후보</th><th>고칠 레버</th></tr></thead>
+      <tbody>
+        <tr><td>너무 뻔하고 일반적임</td><td>맥락 정보 부족</td><td>Context를 더 구체적으로 (3-1)</td></tr>
+        <tr><td>톤이 안 맞음</td><td>어조 지시 없음</td><td>시스템 프롬프트에 톤앤매너 규칙 추가 (3-4)</td></tr>
+        <tr><td>지시한 조건을 빼먹음</td><td>지시가 나열식이라 놓침</td><td>Format을 번호 목록으로 명시 (3-1)</td></tr>
+        <tr><td>형식이 매번 다름</td><td>출력 형식 예시 없음</td><td>Few-shot 예시로 형식 고정 (3-2)</td></tr>
+        <tr><td>사실이 아닌 내용이 섞임</td><td>모델이 근거 없이 추측</td><td>Context에 실제 자료만 제공, 추측 금지 지시</td></tr>
+        <tr><td>논리 전개가 얕음</td><td>바로 결론으로 점프</td><td>단계별로 생각하도록 지시 (3-3)</td></tr>
+      </tbody>
+    </table>
+    <p>즉 반복 개선은 새로운 기법이 아니라, <strong>지금까지 배운 기법 중 어떤 것을 지금 이 상황에 꺼내 쓸지 진단하는 능력</strong>입니다.</p>
+
+    <h2 id="sec-example">3) 실전 예시: 앱 푸시 알림 문구, 3번의 반복</h2>
+    <p>"신규 기능 출시를 알리는 푸시 알림 문구를 써야 한다"는 과제로 반복 과정을 따라가 보겠습니다.</p>
+    <div class="example-box">
+      <strong>1차 시도</strong><br>
+      프롬프트: "신규 기능 출시 푸시 알림 문구 써줘."<br>
+      결과: "새로운 기능이 추가되었습니다! 지금 확인해보세요." — <strong>진단</strong>: 너무 뻔하고, 어떤 기능인지도 안 나옴. 원인은 맥락(Context) 부족.
+    </div>
+    <div class="example-box">
+      <strong>2차 시도 (맥락 추가)</strong><br>
+      프롬프트: "신규 기능 출시 푸시 알림 문구 써줘. 기능: 여러 명이 동시에 메모를 편집할 수 있는 '실시간 공동편집'. 타겟: 이미 앱을 쓰고 있는 협업팀 사용자."<br>
+      결과: "이제 팀원과 실시간으로 함께 메모를 편집해보세요. 실시간 공동편집 기능이 추가되었습니다." — <strong>진단</strong>: 내용은 맞는데 너무 길고 딱딱함. 원인은 톤·길이 제약 부족.
+    </div>
+    <div class="example-box">
+      <strong>3차 시도 (형식·톤 제약 추가)</strong><br>
+      프롬프트: "신규 기능 출시 푸시 알림 문구 써줘. 기능: 실시간 공동편집. 타겟: 협업팀 사용자. 조건: 20자 이내, 느낌표 1개 이하, 친근한 반말체, 행동을 유도하는 동사로 끝낼 것."<br>
+      결과: "팀원과 같이 메모 편집해봐!" — <strong>비교</strong>: 1차보다 구체적이고, 2차보다 짧고 자연스럽습니다. 조건을 하나씩 추가할 때마다 무엇이 좋아졌는지 명확히 보입니다.
+    </div>
+
+    <h2 id="sec-failure-log">4) "실패 사례" 로그를 남기는 습관</h2>
+    <p>반복 개선을 일회성으로 끝내지 않고 쌓아가려면, 잘 안 됐던 프롬프트를 기록해두는 습관이 큰 힘을 발휘합니다. 매번 처음부터 헤매지 않고, 과거에 겪었던 문제와 해법을 다시 꺼내 쓸 수 있기 때문입니다.</p>
+    <table class="summary">
+      <thead><tr><th>항목</th><th>기록 예시</th></tr></thead>
+      <tbody>
+        <tr><td>원래 프롬프트</td><td>"신규 기능 출시 푸시 알림 문구 써줘."</td></tr>
+        <tr><td>무엇이 잘못됐나</td><td>맥락 없이 뻔한 문구가 나옴</td></tr>
+        <tr><td>어떻게 고쳤나</td><td>기능·타겟 맥락 + 글자수·톤 조건 추가</td></tr>
+        <tr><td>결과</td><td>20자 이내의 친근한 반말체 문구로 개선</td></tr>
+      </tbody>
+    </table>
+    <p>이런 기록이 10개, 20개 쌓이면 "내가 자주 겪는 실패 유형"과 "내게 잘 통하는 조정법"이 보이기 시작합니다. 이것이 곧 나만의 프롬프트 노하우입니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>단계</th><th>내용</th></tr></thead>
+      <tbody>
+        <tr><td>시도(Try)</td><td>일단 프롬프트를 써서 결과를 받아본다</td></tr>
+        <tr><td>진단(Diagnose)</td><td>무엇이 왜 아쉬운지 한 문장으로 구체화한다</td></tr>
+        <tr><td>조정(Adjust)</td><td>진단에 맞는 변수 하나만 바꾼다</td></tr>
+        <tr><td>비교(Compare)</td><td>이전 결과·목표와 나란히 놓고 실제 개선을 확인한다</td></tr>
+        <tr><td><a class="term" href="#term-debugging">디버깅</a></td><td>결과가 잘못된 원인을 체계적으로 좁혀가는 과정</td></tr>
+        <tr><td><a class="term" href="#term-ab-comparison">A/B비교</a></td><td>두 버전의 프롬프트·결과를 나란히 놓고 비교하는 방법</td></tr>
+      </tbody>
+    </table>
+
+    <div class="check-in"><strong>이해 확인</strong> — 최근에 썼던 프롬프트 하나를 골라, 이번 모듈의 루프대로 최소 2번 반복 개선해보고 무엇을 바꿨는지 기록해보세요. 다음 모듈(3-6. 실전: 기획서·회의록·리서치에 바로 쓰는 프롬프트)에서는 지금까지 배운 모든 기법을 담은, 바로 복사해서 쓸 수 있는 프롬프트 템플릿 3가지를 드립니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-ab-comparison">
+      <div class="glossary-entry-head"><h3>A/B비교 (A/B Comparison)</h3><a class="back-link" href="#sec-loop">↑ 본문으로</a></div>
+      <p>같은 목적의 프롬프트를 두 가지 버전(A안, B안)으로 만들어 같은 조건에서 결과를 나란히 비교하는 방법입니다. "그냥 느낌이 좋아졌다"가 아니라, 무엇이 정확히 달라졌는지 눈으로 확인할 수 있게 해줍니다. 위 3번째 예시처럼 조건을 하나씩 추가한 버전들을 나란히 두고 비교하면, 어떤 조건이 결과에 실제로 영향을 줬는지 알 수 있습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-debugging">
+      <div class="glossary-entry-head"><h3>디버깅 (Debugging)</h3><a class="back-link" href="#sec-failure-patterns">↑ 본문으로</a></div>
+      <p>원래 소프트웨어 개발에서 "코드의 오류(버그)를 찾아 고치는 과정"을 뜻하는 말인데, 프롬프트에도 똑같이 적용할 수 있습니다. 결과가 원하는 대로 안 나왔을 때 "왜 이런 결과가 나왔는지"를 증상 → 원인 분류 → 한 가지 요소 수정 → 재확인 순서로 좁혀가는 것을 프롬프트 디버깅이라고 부릅니다. 한 번에 여러 곳을 고치면 무엇이 효과가 있었는지 알 수 없기 때문에, 디버깅은 항상 한 요소씩 진행하는 것이 핵심입니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://www.cairni.com/read/skill을-위한-프롬프팅/프롬프트-반복-개선-프레임워크" target="_blank" rel="noopener">프롬프트 반복 개선 프레임워크</a><span class="src-domain">cairni.com</span></li>
+          <li><a href="https://www.aiground.co.kr/ai-prompt-improvement-iterative-method/" target="_blank" rel="noopener">AI 프롬프트 개선법: 실패에서 배우는 3단계 반복 전략</a><span class="src-domain">aiground.co.kr</span></li>
+          <li><a href="https://cyan91.tistory.com/entry/AI-코딩-프롬프트-25-프롬프트-디버깅-피드백-루프로-완성도-높이기" target="_blank" rel="noopener">AI 코딩 프롬프트 [2/5] 프롬프트 디버깅: 피드백 루프로 완성도 높이기</a><span class="src-domain">cyan91.tistory.com</span></li>
+          <li><a href="https://rinfo.tistory.com/entry/프롬프트-효과-검증하기-AB-테스트와-성능-평가-방법" target="_blank" rel="noopener">프롬프트 효과 검증하기 [21]: A/B 테스트와 성능 평가 방법</a><span class="src-domain">rinfo.tistory.com</span></li>
+          <li><a href="https://blog.naver.com/hi_paper/224225431806" target="_blank" rel="noopener">프롬프트 A/B 테스트 실전 로그: 같은 목적, 다른 결과</a><span class="src-domain">blog.naver.com</span></li>
+          <li><a href="https://www.minzkn.com/vibecoding/pages/prompt-optimization.html" target="_blank" rel="noopener">프롬프트 최적화 — AI Vibe Coding 가이드</a><span class="src-domain">minzkn.com</span></li>
+          <li><a href="https://tilnote.io/pages/69f2066a83b513f85f29e1ee" target="_blank" rel="noopener">A/B 테스트와 개선 기록</a><span class="src-domain">tilnote.io</span></li>
+          <li><a href="https://promptlogiclab.com/analyzing-prompt-writing-failures/" target="_blank" rel="noopener">프롬프트 작성에서 실패 사례를 분석하는 방법</a><span class="src-domain">promptlogiclab.com</span></li>
+          <li><a href="https://youchoichallenge.tistory.com/18" target="_blank" rel="noopener">구글 플로우 프롬프트 성공/실패 사례 비교, 뭐가 문제였는지 정리해보자요</a><span class="src-domain">youchoichallenge.tistory.com</span></li>
+          <li><a href="https://prompt-writing1.com/improving-prompts-through-comparison/" target="_blank" rel="noopener">답변 품질 Up! 프롬프트 작성과 결과 비교 개선법</a><span class="src-domain">prompt-writing1.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://claude.com/blog/best-practices-for-prompt-engineering" target="_blank" rel="noopener">Prompt engineering best practices for 2026</a><span class="src-domain">claude.com</span></li>
+          <li><a href="https://mirascope.com/blog/prompt-iteration" target="_blank" rel="noopener">A Guide to Prompt Iteration: Strategies and Examples</a><span class="src-domain">mirascope.com</span></li>
+          <li><a href="https://www.ibm.com/think/topics/iterative-prompting" target="_blank" rel="noopener">What is iterative prompting?</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://www.accelirate.com/prompt-engineering-best-practices/" target="_blank" rel="noopener">10 Essential Prompt Engineering Best Practices for Any AI Model</a><span class="src-domain">accelirate.com</span></li>
+          <li><a href="https://www.braintrust.dev/articles/prompt-optimization-loop" target="_blank" rel="noopener">The prompt optimization loop: How to improve prompts through iterative evaluation</a><span class="src-domain">braintrust.dev</span></li>
+          <li><a href="https://www.promptquorum.com/prompt-engineering/fundamentals-of-prompt-optimization" target="_blank" rel="noopener">How to Optimize Prompts in 2026: 6 Levers + 6-Step Process</a><span class="src-domain">promptquorum.com</span></li>
+          <li><a href="https://dev.to/kuldeep_paul/how-to-debug-llm-failures-a-complete-guide-3iil" target="_blank" rel="noopener">How to Debug LLM Failures: A Complete Guide</a><span class="src-domain">dev.to</span></li>
+          <li><a href="https://promptessor.com/blog/prompt-debugging-guide" target="_blank" rel="noopener">Prompt Debugging Guide: How to Find and Fix Prompt Failures</a><span class="src-domain">promptessor.com</span></li>
+          <li><a href="https://ingramhaus.com/debugging-prompts-systematic-methods-to-improve-llm-outputs" target="_blank" rel="noopener">Debugging Prompts: Systematic Methods to Improve LLM Outputs</a><span class="src-domain">ingramhaus.com</span></li>
+          <li><a href="https://medium.com/data-science-collective/how-to-get-better-llm-outputs-6-prompt-engineering-tips-for-coding-debugging-and-data-science-aafbf2555bfd" target="_blank" rel="noopener">How to Get Better LLM Outputs: 6 Prompt Engineering Tips</a><span class="src-domain">medium.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 3-5 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

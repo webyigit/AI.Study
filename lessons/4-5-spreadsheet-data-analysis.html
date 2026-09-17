@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>4-5. 스프레드시트·데이터 분석에 AI 활용</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="4-5">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 4 · 실무 도구 활용</p>
+    <p class="eyebrow">Module 4-5</p>
+    <h1 class="title">스프레드시트·데이터 분석에 AI 활용</h1>
+    <p class="subtitle"><a class="term" href="#term-excel">엑셀</a> 데이터를 붙여넣고 AI에게 패턴을 찾게 하는 방법과, <a class="term" href="#term-data-analysis">데이터분석</a>에서 AI를 쓸 때 절대 건너뛰면 안 되는 검증 습관을 다룹니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">홈닉 앱 사용 로그를 엑셀로 받으면, 행이 수천 개씩 되는 경우가 흔합니다. 피벗 테이블을 돌리기 전에 "일단 어떤 패턴이 있는지 감을 잡고 싶다"는 순간, AI에게 데이터를 붙여넣고 물어보는 것이 꽤 쓸모 있습니다. 다만 AI는 숫자를 "느낌으로" 읽는 존재이기도 해서, 계산 실수를 하는 경우가 실제로 있습니다. 이번 모듈은 이 두 얼굴을 모두 다룹니다.</p>
+
+    <h2 id="sec-usecases">1) AI에게 스프레드시트를 맡기면 잘하는 것들</h2>
+    <table class="summary">
+      <thead><tr><th>작업</th><th>홈닉 예시</th></tr></thead>
+      <tbody>
+        <tr><td>패턴·이상치 발견</td><td>"이 표에서 이상하게 이탈률이 튀는 주가 있어?"라고 물으면 후보 구간을 짚어줌</td></tr>
+        <tr><td>데이터 요약 및 그룹화</td><td>기기 종류별 사용 시간을 붙여넣고 "카테고리별로 묶어서 요약해줘"</td></tr>
+        <tr><td>비전공자도 이해하는 해설</td><td>"이 표가 무슨 의미인지 비전공자도 알아듣게 3줄로 설명해줘"</td></tr>
+        <tr><td>수식·함수 추천</td><td>"이 두 시트를 매칭하려면 어떤 함수를 쓰면 좋을지"를 물어보고 수식만 받아옴</td></tr>
+        <tr><td>초벌 리포트 초안</td><td>표 데이터를 바탕으로 주간 사용 현황 리포트 초안 텍스트 생성</td></tr>
+      </tbody>
+    </table>
+    <div class="example-box"><strong>프롬프트 예시</strong><br>"아래는 홈닉 앱의 최근 4주 기기별 사용 횟수 표야. 전주 대비 사용량이 눈에 띄게 줄어든 기기가 있는지, 있다면 몇 주차에 얼마나 줄었는지 짚어줘. 표로 정리해줘."</div>
+
+    <h2 id="sec-limits">2) AI는 계산기가 아니다 — 숫자를 틀리는 이유</h2>
+    <p>LLM 기반 AI는 기본적으로 "다음에 올 가능성이 높은 단어"를 예측하는 방식으로 작동합니다. 표 계산 전용 엔진이 아니기 때문에, 특히 아래 상황에서 계산 실수가 발생하기 쉽습니다.</p>
+    <table class="summary">
+      <thead><tr><th>실수가 잦은 상황</th><th>이유</th></tr></thead>
+      <tbody>
+        <tr><td>행 수가 매우 많은 표를 통째로 붙여넣었을 때</td><td>중간 행을 누락하거나 잘못 집계할 가능성이 커짐</td></tr>
+        <tr><td>합계·평균 등 정밀한 수치 계산</td><td>패턴 예측 방식이라 실제 사칙연산 결과와 미세하게 어긋날 수 있음</td></tr>
+        <tr><td>표 형식이 깨져 있거나 병합 셀이 많을 때</td><td>어느 값이 어느 항목에 속하는지 잘못 매칭할 위험</td></tr>
+        <tr><td>퍼센트·증감률 해석</td><td>기준값을 착각해 증감률을 반대로 말하는 경우가 있음</td></tr>
+      </tbody>
+    </table>
+    <p>IBM 등 여러 기관이 지적하듯, 생성형 AI는 "그럴듯하지만 틀린 답"을 자신 있게 내놓는 특성(할루시네이션)이 있습니다. 스프레드시트 숫자도 예외가 아닙니다.</p>
+
+    <h2 id="sec-verify">3) 그래서 반드시 지켜야 하는 검증 습관</h2>
+    <table class="summary">
+      <thead><tr><th>습관</th><th>방법</th></tr></thead>
+      <tbody>
+        <tr><td>핵심 숫자는 직접 재계산</td><td>보고서에 들어갈 합계·평균 등 중요 수치는 엑셀 수식으로 한 번 더 검증</td></tr>
+        <tr><td>표 대신 요약 근거를 요구</td><td>"어떤 행을 근거로 이 결론을 냈는지" 물어보고 원본과 대조</td></tr>
+        <tr><td>큰 표는 나눠서 분석</td><td>수천 행을 한 번에 맡기지 말고, 구간을 나누거나 피벗 결과만 붙여넣기</td></tr>
+        <tr><td>결과를 다른 방식으로 재질문</td><td>같은 데이터를 다른 각도로 다시 물어봐서 답이 일관되는지 확인</td></tr>
+      </tbody>
+    </table>
+    <div class="example-box"><strong>검증 프롬프트 예시</strong><br>"방금 계산한 '3주차 평균 사용 횟수 42회'가 어떤 행들을 근거로 나온 숫자인지, 사용한 행 번호와 값을 나열해줘." — 이렇게 근거를 되짚게 하면, AI가 지어낸 숫자인지 실제 계산인지 바로 드러납니다.</div>
+
+    <h2 id="sec-workflow">4) 실무 워크플로 — 엑셀과 AI를 오가며 쓰기</h2>
+    <p>가장 안전한 방식은 "1차 감 잡기는 AI, 최종 숫자는 엑셀"로 역할을 나누는 것입니다.</p>
+    <table class="summary">
+      <thead><tr><th>단계</th><th>도구</th></tr></thead>
+      <tbody>
+        <tr><td>1. 어떤 패턴이 있을지 가설 세우기</td><td>AI에게 원본 데이터 요약·이상치 후보를 물어봄</td></tr>
+        <tr><td>2. 실제 수치 확정</td><td>엑셀 피벗 테이블·수식으로 AI가 짚은 구간을 직접 재계산</td></tr>
+        <tr><td>3. 해설·리포트 초안 작성</td><td>확정된 숫자를 다시 AI에 주고, 비전공자용 설명 문장으로 다듬기</td></tr>
+      </tbody>
+    </table>
+    <p>이렇게 하면 AI의 강점(빠른 탐색, 쉬운 설명)과 엑셀의 강점(정확한 계산)을 각각 제자리에서 쓸 수 있습니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>구분</th><th>핵심</th></tr></thead>
+      <tbody>
+        <tr><td>AI가 잘하는 일</td><td>패턴 탐색, 그룹 요약, 비전공자용 해설, 수식 추천</td></tr>
+        <tr><td>AI가 틀리기 쉬운 일</td><td>대량 데이터의 정밀 합계·평균·증감률 계산</td></tr>
+        <tr><td>핵심 습관</td><td>보고서에 쓸 숫자는 반드시 엑셀로 재계산해 검증</td></tr>
+        <tr><td>역할 분담</td><td>가설 탐색은 AI, 최종 확정 숫자는 엑셀 수식</td></tr>
+      </tbody>
+    </table>
+
+    <div class="check-in"><strong>이해 확인</strong> — "AI가 계산해준 숫자를 검증 없이 보고서에 바로 쓰면 안 되는 이유"를 스스로 한 문장으로 말해보세요. 다음 모듈(4-6. 업무에 AI 쓸 때 보안·저작권 체크리스트)에서는 이런 데이터를 AI에 입력할 때의 보안 문제를 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-excel">
+      <div class="glossary-entry-head"><h3>엑셀 (Excel / 스프레드시트)</h3><a class="back-link" href="#body">↑ 본문으로</a></div>
+      <p>행과 열로 이루어진 표 형태로 데이터를 입력·계산·정리하는 소프트웨어, 또는 그 표 형식 자체를 말합니다. 기획자가 사용 로그, 설문 결과, 매출 데이터 등을 다룰 때 가장 흔히 접하는 데이터 형태이며, AI에 데이터를 넘길 때도 표(CSV·복사 붙여넣기) 형태로 전달하는 경우가 많습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-data-analysis">
+      <div class="glossary-entry-head"><h3>데이터분석 (Data Analysis)</h3><a class="back-link" href="#sec-usecases">↑ 본문으로</a></div>
+      <p>수집된 데이터에서 의미 있는 패턴·추세·인사이트를 찾아내는 작업입니다. 단순 집계(합계·평균)부터 이상치 탐지, 추세 분석까지 폭넓게 포함하며, AI는 이 중 특히 "패턴을 빠르게 훑어보고 가설을 세우는" 초기 탐색 단계에서 유용합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-hallucination">
+      <div class="glossary-entry-head"><h3>할루시네이션 (Hallucination)</h3><a class="back-link" href="#sec-limits">↑ 본문으로</a></div>
+      <p>생성형 AI가 실제로는 근거가 없는 내용을 마치 사실인 것처럼 그럴듯하게 만들어내는 현상입니다. 스프레드시트 분석에서는 존재하지 않는 수치나 잘못된 계산 결과를 자신 있게 제시하는 형태로 나타날 수 있어, 결과를 그대로 신뢰하지 않고 원본과 대조하는 습관이 필요합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-pivot-table">
+      <div class="glossary-entry-head"><h3>피벗 테이블 (Pivot Table)</h3><a class="back-link" href="#sec-workflow">↑ 본문으로</a></div>
+      <p>많은 양의 표 데이터를 원하는 기준(예: 기기 종류별, 주차별)으로 자동으로 묶고 집계해주는 엑셀·스프레드시트 기능입니다. AI가 찾아낸 패턴 가설을 실제 숫자로 확정할 때, 피벗 테이블로 재계산해 검증하는 것이 안전한 방법입니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://brunch.co.kr/@sukistory/40" target="_blank" rel="noopener">엑셀 파일만 올리면 ChatGPT가 데이터 분석해준다!</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://fastcampus.co.kr/gov_review_insightGPTexcel" target="_blank" rel="noopener">1시간 업무를 10분으로 줄여주는 챗GPT로 엑셀 200% 활용</a><span class="src-domain">fastcampus.co.kr</span></li>
+          <li><a href="https://www.digitalfocus.news/news/articleView.html?idxno=19251" target="_blank" rel="noopener">함수 몰라도 엑셀 완성, 엑셀용 챗GPT 출시</a><span class="src-domain">digitalfocus.news</span></li>
+          <li><a href="https://rowspeak.ai/ko/blog/monthly-excel-report-to-ai-dashboard/" target="_blank" rel="noopener">월간 Excel 보고서를 AI 대시보드로 전환하는 방법</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/ko/blog/excel-google-sheets-ai-agents-2026/" target="_blank" rel="noopener">엑셀 및 구글 시트 AI 에이전트: 실제 테스트, 실패 사례</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/ko/blog/ai-vs-excel-vs-bi/" target="_blank" rel="noopener">AI vs Excel vs BI: 비즈니스 보고에서 각 도구의 역할</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/ko/blog/ai-spreadsheet-analysis-prompts/" target="_blank" rel="noopener">재무 및 운영을 위한 25가지 AI 스프레드시트 분석 과제</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/ko/blog/what-is-an-ai-spreadsheet/" target="_blank" rel="noopener">AI 스프레드시트란 무엇인가?</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/ko/blog/best-data-analysis-tools/" target="_blank" rel="noopener">최고의 데이터 분석 도구: 엑셀, BI, AI 및 스프레드시트 도구 비교</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/ko/blog/7-best-ai-tools-for-excel/" target="_blank" rel="noopener">Excel용 최고의 AI 7가지: 분석, 수식, 대시보드, 보고서</a><span class="src-domain">rowspeak.ai</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://openai.com/index/chatgpt-for-excel/" target="_blank" rel="noopener">Introducing ChatGPT for Excel</a><span class="src-domain">openai.com</span></li>
+          <li><a href="https://rowspeak.ai/blog/excel-google-sheets-ai-agents-2026/" target="_blank" rel="noopener">Excel and Google Sheets AI Agents in 2026</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/blog/best-ai-tools-excel-data-analysis-2026/" target="_blank" rel="noopener">12 Best AI Tools for Excel Data Analysis in 2026</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/blog/ai-vs-excel-vs-bi/" target="_blank" rel="noopener">AI vs Excel vs BI in 2026</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/blog/what-is-an-ai-spreadsheet/" target="_blank" rel="noopener">What Is an AI Spreadsheet?</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/blog/grok-for-excel-vs-rowspeak-data-privacy/" target="_blank" rel="noopener">Grok for Excel vs RowSpeak: Which AI Tool Respects Your Data?</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/blog/ai-spreadsheet-analysis-prompts/" target="_blank" rel="noopener">25 AI Spreadsheet Analysis Tasks for Finance and Operations</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://www.ibm.com/think/topics/ai-hallucinations" target="_blank" rel="noopener">What Are AI Hallucinations?</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://rowspeak.ai/blog/excel-ai-data-analysis-automation/" target="_blank" rel="noopener">Excel AI Data Analysis Automation</a><span class="src-domain">rowspeak.ai</span></li>
+          <li><a href="https://rowspeak.ai/blog/top-ai-tools-excel-data-analysis/" target="_blank" rel="noopener">Top AI Tools for Excel Data Analysis</a><span class="src-domain">rowspeak.ai</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 4-5 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

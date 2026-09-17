@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>5-4. 경쟁 서비스 AI 기능 벤치마킹</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="5-4">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 5 · AI 서비스·제품 기획</p>
+    <p class="eyebrow">Module 5-4</p>
+    <h1 class="title">경쟁 서비스 AI 기능 벤치마킹</h1>
+    <p class="subtitle">기획자는 경쟁사의 AI 기능 내부 코드를 볼 수 없습니다. 하지만 겉에서 관찰 가능한 신호만 체계적으로 모아도, 그 기능이 언제 작동하고 무엇을 보고 판단하며 어디서 실패하는지 꽤 정확하게 "역설계"할 수 있습니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">경쟁사의 AI 기능을 분석한다고 하면 많은 기획자가 "코드를 볼 수 없으니 대충 써보고 느낌만 적는다"에 머무릅니다. 하지만 <a class="term" href="#term-benchmarking">벤치마킹</a>은 감상이 아니라 방법론입니다. 이 모듈은 사용자 입장에서만 관찰 가능한 정보를 가지고도 반복 가능한 4단계 프레임워크로 경쟁 AI 기능을 뜯어보는 방법을 다룹니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 620 200" width="620" height="200" role="img" aria-label="트리거 파악, 데이터 추정, 실패모드 관찰, 자기 제품 적용의 4단계 벤치마킹 프레임워크를 보여주는 퍼널 다이어그램">
+        <rect x="10" y="60" width="130" height="80" rx="10" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="75" y="95" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="600" fill="var(--ink)">① 트리거</text>
+        <text x="75" y="113" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-soft)">파악</text>
+
+        <line x1="140" y1="100" x2="165" y2="100" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow4)"/>
+
+        <rect x="165" y="60" width="130" height="80" rx="10" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="230" y="95" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="600" fill="var(--ink)">② 데이터</text>
+        <text x="230" y="113" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-soft)">추정</text>
+
+        <line x1="295" y1="100" x2="320" y2="100" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow4)"/>
+
+        <rect x="320" y="60" width="130" height="80" rx="10" fill="var(--accent-soft)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="385" y="95" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="600" fill="var(--accent-strong)">③ 실패모드</text>
+        <text x="385" y="113" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--accent-strong)">관찰</text>
+
+        <line x1="450" y1="100" x2="475" y2="100" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow4)"/>
+
+        <rect x="475" y="60" width="135" height="80" rx="10" fill="var(--accent)" stroke="var(--accent-strong)" stroke-width="1.5"/>
+        <text x="542" y="95" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--accent-contrast)">④ 자기 제품</text>
+        <text x="542" y="113" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" font-weight="700" fill="var(--accent-contrast)">적용</text>
+
+        <defs>
+          <marker id="arrow4" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 Z" fill="var(--ink-faint)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <h2 id="sec-trigger">1) 트리거 파악 — 무엇이 AI를 작동시키는가</h2>
+    <p>가장 먼저 확인할 것은 그 AI 기능이 "언제, 무엇을 계기로" 작동하는지입니다. 상시 켜져 있는 기능인가요, 아니면 사용자가 버튼을 눌러야 시작되나요? 특정 조건(시간대, 센서값, 위치 변화)이 맞아야 나타나나요? 직접 제품을 써보면서 정확히 어떤 행동을 했을 때 AI 반응이 튀어나오는지를 기록하는 것이 출발점입니다.</p>
+    <div class="example-box"><strong>체크리스트</strong> — 같은 조건을 여러 번 반복해서 재현되는지 확인한다 / 시간대를 바꿔 다시 시도한다 / 알림이 사용자가 요청하지 않았는데도 뜨는지(사전 제안형인지) 확인한다 / 온보딩 중에만 나타나는 안내인지, 상시 기능인지 구분한다.</div>
+
+    <h2 id="sec-data">2) 사용 데이터 추정 — AI가 무엇을 보고 판단하는가</h2>
+    <p>트리거를 알아냈다면, 다음은 "그 판단에 어떤 입력값이 영향을 주는가"를 역으로 추정하는 단계입니다. 방법은 간단합니다 — 조건 하나씩만 바꿔가며 결과가 달라지는지 관찰하는 것입니다. 위치를 바꿔보고, 사용 이력을 다르게 쌓아보고, 시간을 다르게 해서 같은 조작을 반복해봅니다. 결과가 달라지면 그 변수가 입력 데이터에 포함된다는 신호입니다.</p>
+    <div class="example-box"><strong>예시</strong> — Google Nest 온도조절기의 자동 스케줄 기능은 사용자가 처음 몇 주간 수동으로 온도를 조절한 기록, 재실 감지 센서, 위치 기반 지오펜싱 신호를 함께 사용해 스케줄을 만듭니다. 이는 "며칠 써야 패턴이 바뀌는지", "집을 비웠을 때 반응이 달라지는지"를 직접 테스트해보면 외부에서도 상당 부분 추정할 수 있습니다.</div>
+
+    <h2 id="sec-failure">3) 실패 모드 관찰 — 리뷰와 커뮤니티에서 약점 찾기</h2>
+    <p>직접 써보는 것만으로는 드문 실패 상황을 다 만나기 어렵습니다. 그래서 세 번째 단계는 앱스토어 리뷰, 커뮤니티 게시글, SNS 불만글을 모아 "언제, 어떻게 AI가 틀리는지" 패턴을 찾는 것입니다. 한 명이 겪은 불만보다, 여러 리뷰에서 반복되는 불만이 훨씬 신뢰할 수 있는 신호입니다. 이 단계는 나의 제품이 "무엇을 하지 말아야 하는지"와 "어떤 빈틈을 메울 수 있는지"를 동시에 알려줍니다.</p>
+    <div class="example-box"><strong>리서치 팁</strong> — 경쟁 앱 리뷰 중 최신 50~100개를 훑으며 반복되는 키워드(예: "괜히 꺼짐", "엉뚱한 시간에 알림")를 태깅한다. 경쟁 앱 5개 중 4개에서 같은 불만이 나온다면, 그건 업계 전체의 약점이자 내 제품이 차별화할 수 있는 지점이다.</div>
+
+    <h2 id="sec-apply">4) 정리 및 자기 제품에 적용 — 홈닉의 기회로 번역하기</h2>
+    <p>마지막 단계는 앞의 세 단계에서 모은 관찰을 하나의 <a class="term" href="#term-case-analysis">사례분석</a> 문서로 정리하고, "그래서 홈닉은 무엇을 다르게 만들 것인가"로 번역하는 것입니다. 단순히 "경쟁사가 이렇게 한다"를 나열하는 데서 끝내지 말고, 관찰된 실패 모드마다 "우리라면 어떻게 피할 것인가"를 한 줄씩 붙이는 것이 핵심입니다.</p>
+
+    <h2 id="sec-worked">사례로 적용해보기 — Nest 자동 스케줄과 Alexa Hunches</h2>
+    <p>아래는 실제 시장에 나와 있는 두 개의 유명한 AI+스마트홈 기능을 4단계 프레임워크로 정리해본 예시입니다. 둘 다 코드를 본 적은 없지만, 공개된 도움말 문서와 사용자 후기만으로도 상당히 구체적인 그림이 나옵니다.</p>
+    <table class="summary">
+      <thead><tr><th>항목</th><th>Google Nest 자동 스케줄</th><th>Amazon Alexa Hunches</th></tr></thead>
+      <tbody>
+        <tr><td>트리거</td><td>사용자가 며칠간 반복적으로 온도를 수동 조절</td><td>사용자가 앱에서 "Hunches" 기능을 켜면 상시 대기</td></tr>
+        <tr><td>추정 데이터</td><td>수동 조절 이력, 재실 센서, 위치 지오펜싱</td><td>기기 상태 변화 이력, 음성 명령 시각 패턴</td></tr>
+        <tr><td>관찰된 실패모드</td><td>패턴이 자주 바뀌는 사용자(교대근무 등)에게 스케줄이 계속 어긋남</td><td>사용자가 예상 못한 시점에 조명이 꺼지는 "과잉 예측" 불만</td></tr>
+        <tr><td>홈닉에 대한 시사점</td><td>패턴이 불규칙한 사용자는 자동학습 대신 "제안 후 확인" 모드로 전환</td><td>자동 실행 전 낮은 강도의 사전 알림(예: 10초 유예)으로 신뢰 확보</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>단계</th><th>무엇을 관찰하나</th><th>어디서 찾나</th></tr></thead>
+      <tbody>
+        <tr><td>① 트리거 파악</td><td>기능이 작동하는 정확한 조건</td><td>직접 제품 사용, 반복 재현 테스트</td></tr>
+        <tr><td>② 데이터 추정</td><td>입력값을 바꿨을 때 결과가 달라지는지</td><td>조건을 하나씩 바꿔가며 직접 실험</td></tr>
+        <tr><td>③ 실패모드 관찰</td><td>여러 사용자가 반복적으로 겪는 불만 패턴</td><td>앱스토어 리뷰, 커뮤니티, SNS</td></tr>
+        <tr><td>④ 자기 제품 적용</td><td>관찰을 자사 기능 차별화 아이디어로 번역</td><td><a class="term" href="#term-benchmarking">벤치마킹</a> 정리 문서, 팀 공유</td></tr>
+      </tbody>
+    </table>
+    <p>이 네 단계는 순서대로 한 번만 하는 게 아니라, 신제품 출시나 업데이트가 있을 때마다 반복하는 루틴으로 가져가는 것이 좋습니다. 경쟁사도 계속 업데이트하기 때문입니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 이번 주 안에 스마트홈 경쟁 앱 하나를 골라 ① 트리거 파악 단계만 직접 해보세요. "정확히 어떤 행동을 했을 때 AI 기능이 반응했는지" 한 문장으로 적어보는 것이 좋은 시작입니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-benchmarking">
+      <div class="glossary-entry-head"><h3>벤치마킹 (Benchmarking)</h3><a class="back-link" href="#sec-trigger">↑ 본문으로</a></div>
+      <p>같은 산업 안의 다른 기업, 특히 경쟁사의 제품·전략·프로세스를 체계적으로 분석하고 평가해서 자기 제품을 개선하는 데 활용하는 과정입니다. 가격이나 기술 사양처럼 결과를 비교하는 "성과 벤치마킹"과, 상대가 어떤 절차로 그 결과를 만들어내는지를 배우는 "프로세스 벤치마킹"으로 나눌 수 있습니다. AI 기능처럼 내부 로직이 공개되지 않은 대상은 외부에서 관찰 가능한 신호만으로 프로세스를 추정하는 역설계에 가까운 벤치마킹이 필요합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-case-analysis">
+      <div class="glossary-entry-head"><h3>사례분석 (Case Analysis)</h3><a class="back-link" href="#sec-apply">↑ 본문으로</a></div>
+      <p>특정 제품이나 기능의 작동 방식, 사용자 반응, 성과를 구체적인 사례를 통해 깊이 들여다보고 그로부터 일반화 가능한 교훈을 뽑아내는 분석 방법입니다. 단순히 "무엇을 관찰했다"에서 끝나지 않고, 관찰된 사실을 근거로 "그래서 우리 제품은 어떻게 다르게 만들 것인가"라는 실행 가능한 결론까지 도출하는 것이 좋은 사례분석의 조건입니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://www.switas.com/ko/articles/the-role-of-benchmarking-in-successful-product-launches" target="_blank" rel="noopener">성공적인 제품 출시에서 벤치마킹의 역할</a><span class="src-domain">switas.com</span></li>
+          <li><a href="https://prime-career.com/article/3049" target="_blank" rel="noopener">경쟁사 벤치마킹할 때 저작권 걱정 없는 방법</a><span class="src-domain">prime-career.com</span></li>
+          <li><a href="https://brainconnect.ai/blog/competitor-analysis-benchmarking-map" target="_blank" rel="noopener">경쟁사 분석 및 벤치마킹 방법 — 포지셔닝 맵으로 시각화하기</a><span class="src-domain">brainconnect.ai</span></li>
+          <li><a href="https://www.next-t.co.kr/seo/seo-wiki/%EA%B2%BD%EC%9F%81%EC%82%AC-%EB%B2%A4%EC%B9%98%EB%A7%88%ED%82%B9/" target="_blank" rel="noopener">경쟁사 벤치마킹</a><span class="src-domain">next-t.co.kr</span></li>
+          <li><a href="https://brunch.co.kr/@beusable/104" target="_blank" rel="noopener">UX디자인에서 활용할 수 있는 경쟁사 리서치 프레임워크</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://brunch.co.kr/@ckj815/4" target="_blank" rel="noopener">리버스 엔지니어링(Reverse Engineering)</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://blog.opensurvey.co.kr/research-tips/uxr-definition/" target="_blank" rel="noopener">가장 쉽게 풀어 쓴 UX 리서치 기본 개념과 유형</a><span class="src-domain">blog.opensurvey.co.kr</span></li>
+          <li><a href="https://www.koit.co.kr/news/articleView.html?idxno=129335" target="_blank" rel="noopener">스마트홈, 온디바이스 AI로 더 똑똑해졌다</a><span class="src-domain">koit.co.kr</span></li>
+          <li><a href="https://www.etnews.com/20251222000283" target="_blank" rel="noopener">[신년기획]산업별 AI 전망 — 'AI홈'이 알아서 가전제어…에너지 절감·돌봄서비스 척척</a><span class="src-domain">etnews.com</span></li>
+          <li><a href="https://edaily.co.kr/News/Read?mediaCodeNo=257&newsId=03890086642134808" target="_blank" rel="noopener">AI와 매터로 진화하는 스마트홈…시장 선점 경쟁 치열</a><span class="src-domain">edaily.co.kr</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.techinsights.com/blog/competitive-benchmarking-through-teardown-analysis" target="_blank" rel="noopener">Competitive Benchmarking Through Teardown Analysis</a><span class="src-domain">techinsights.com</span></li>
+          <li><a href="https://www.knowledgehut.com/blog/agile/conduct-ai-powered-product-teardown" target="_blank" rel="noopener">How to Conduct an AI-Powered Product Teardown</a><span class="src-domain">knowledgehut.com</span></li>
+          <li><a href="https://appbot.co/blog/competitor-analysis-app-store-feedback-review-analysis/" target="_blank" rel="noopener">How to Analyze Competitor App Reviews (And Turn Them Into Growth)</a><span class="src-domain">appbot.co</span></li>
+          <li><a href="https://www.unwrap.ai/post/guide-to-app-store-review-analysis" target="_blank" rel="noopener">Guide to App Store Review Analysis: Turn Reviews Into Actionable Insights</a><span class="src-domain">unwrap.ai</span></li>
+          <li><a href="https://ministryofprogramming.com/blog/how-to-perform-app-competitor-analysis-complete-guide" target="_blank" rel="noopener">How to Analyze App Competitors (Step-by-Step Framework)</a><span class="src-domain">ministryofprogramming.com</span></li>
+          <li><a href="https://home.howstuffworks.com/nest-learning-thermostat.htm" target="_blank" rel="noopener">How the Nest Learning Thermostat Works</a><span class="src-domain">home.howstuffworks.com</span></li>
+          <li><a href="https://support.google.com/googlenest/answer/9247510?hl=en-CA" target="_blank" rel="noopener">How Nest thermostats learn</a><span class="src-domain">support.google.com</span></li>
+          <li><a href="https://developer.amazon.com/en-US/blogs/alexa/device-makers/2020/12/Enable-Alexa-to-Proactively-Act-on-Hunches" target="_blank" rel="noopener">Now Available: Enable Alexa to Proactively Act on Hunches Without Customers Needing to Ask</a><span class="src-domain">developer.amazon.com</span></li>
+          <li><a href="https://www.amazon.science/blog/the-science-behind-hunches-deep-device-embeddings" target="_blank" rel="noopener">The science behind Hunches: Deep device embeddings</a><span class="src-domain">amazon.science</span></li>
+          <li><a href="https://www.tomsguide.com/news/amazon-alexa-now-acts-on-hunches-is-that-good" target="_blank" rel="noopener">Alexa now acts on 'Hunches' to adjust your smart home — here's how it works</a><span class="src-domain">tomsguide.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 5-4 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

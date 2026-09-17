@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2-3. 환각(Hallucination) 이해하고 대응하기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="2-3">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 2 · LLM 제대로 이해하기</p>
+    <p class="eyebrow">Module 2-3</p>
+    <h1 class="title">환각(Hallucination) 이해하고 대응하기</h1>
+    <p class="subtitle">LLM이 왜 자신감 있게 거짓을 말하는지 원리부터 이해하고, 기획 업무에서 그 위험을 줄이는 구체적인 검증 습관을 익힙니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">LLM이 만들어내는 문장 중 일부는 논리적이고 자연스럽게 들리지만, 사실은 근거 없이 지어낸 내용입니다. 이런 현상을 <a class="term" href="#term-hallucination">환각(Hallucination)</a>이라고 부릅니다. 문제는 이 문장들이 "틀려 보이지" 않는다는 점입니다. 오히려 확신에 찬 어조와 그럴듯한 디테일 때문에 더 믿음직하게 느껴집니다.</p>
+
+    <h2 id="sec-why">1) 환각은 왜 일어나는가 — 다음 토큰 예측의 한계</h2>
+    <p>Phase 1에서 배웠듯, LLM은 <strong>자기회귀적(autoregressive)으로 다음 토큰을 예측</strong>하도록 학습된 모델입니다. 즉, 지금까지 나온 텍스트를 보고 "다음에 올 가능성이 가장 높은 토큰이 무엇인가"를 계속 계산해서 이어 붙이는 방식으로 문장을 만듭니다. 이 학습 목표를 다시 떠올려보면, 모델이 최적화하는 대상은 "사실인가"가 아니라 "학습 데이터와 통계적으로 얼마나 그럴듯한가"입니다.</p>
+    <p>다시 말해 모델에는 <strong>생성하는 순간 그 내용을 실제 사실과 대조해서 검증하는 내장 장치가 없습니다.</strong> 방대한 텍스트를 학습하면서 대부분의 경우 그럴듯한 다음 단어가 실제로도 맞는 경우가 많다 보니 결과물이 정확해 보이는 것뿐이지, 모델이 "이 문장이 사실인지 확인 후 말하는" 절차를 거치는 것은 아닙니다. 질문이 모호하거나, 학습 데이터에 관련 정보가 부족하거나, 아주 구체적인 숫자·이름·출처를 요구받으면 모델은 침묵하는 대신 "이 자리에 들어가기에 통계적으로 자연스러운 값"을 만들어 채워 넣습니다. 그 결과가 환각입니다.</p>
+    <p>여기서 가장 중요한 교훈은 이것입니다 — <strong>문장이 유창하고 자신감 있게 쓰였다는 것은 그 내용이 사실이라는 증거가 전혀 아닙니다.</strong> 모델은 "모르겠다"는 문장도, "확실하다"는 문장도 같은 방식(다음 토큰 확률 계산)으로 만들어내기 때문에, 어조의 자신감과 내용의 정확도는 서로 독립적입니다.</p>
+
+    <h2 id="sec-examples">2) 기획 업무에서 만나는 환각 사례</h2>
+    <p>기획·UX 업무에서 LLM을 리서치 보조 도구로 쓸 때 특히 자주 마주치는 환각 유형은 크게 두 가지입니다.</p>
+
+    <div class="example-box"><strong>사례 A — 그럴듯한 통계 지어내기</strong><br>"국내 앱 사용자 평균 이탈률이 얼마야?"라고 물으면, 모델이 "국내 모바일 앱의 평균 30일 이탈률은 약 71.2%입니다"처럼 소수점까지 붙은 구체적인 수치를 자신감 있게 제시하는 경우가 많습니다. 하지만 이 숫자가 실제 조사 기관의 리포트에서 나온 값인지, 아니면 "이탈률 통계는 보통 이런 범위의 숫자로 표현된다"는 학습 데이터의 패턴에서 그럴듯하게 합성된 값인지는 모델 스스로도 구분하지 못합니다. 실제로 검색해보면 해당 수치의 원출처를 찾을 수 없는 경우가 흔합니다.</div>
+
+    <div class="example-box"><strong>사례 B — 존재하지 않는 인용·출처 만들기</strong><br>"이 주장을 뒷받침하는 논문이나 리포트를 알려줘"라고 요청하면, 모델이 "OOO대학 2023년 연구 '모바일 UX와 재방문율의 상관관계'"처럼 제목, 저자, 발행 연도까지 갖춘 인용을 만들어내기도 합니다. 형식만 보면 진짜 참고문헌처럼 보이지만, 실제로 검색하면 그런 논문이나 리포트 자체가 존재하지 않는 경우가 있습니다. 이는 특정 사례가 아니라 널리 보고된 패턴으로, PwC가 호주 정부에 제출한 보고서에서 존재하지 않는 논문과 가짜 출처가 다수 발견된 사건이나, 미국 변호사가 챗GPT가 지어낸 판례를 법원에 제출했다가 제재를 받은 사건 등이 대표적입니다.</div>
+
+    <h2 id="sec-risk">3) 왜 기획자에게 특히 위험한가</h2>
+    <p>개발자가 코드를 잘못 생성받으면 실행 단계에서 에러가 나서 바로 걸러지는 경우가 많습니다. 반면 기획·UX 업무에서 환각은 검증 없이 그대로 <strong>제안서나 슬라이드에 박제</strong>될 위험이 큽니다. 모델이 지어낸 이탈률 수치가 그대로 사업계획서의 "문제 정의" 슬라이드에 들어가거나, 지어낸 경쟁사 기능·출시일이 전략 회의 자료에 인용되면, 그 결정은 처음부터 존재하지 않는 근거 위에 세워지는 셈입니다. 더 큰 문제는 이런 오류가 회의를 거치며 "이미 검증된 사실"처럼 반복 인용되어, 나중에는 누구도 원출처를 의심하지 않게 된다는 점입니다.</p>
+
+    <h2 id="sec-verify">4) 환각에 대응하는 실전 검증 습관</h2>
+    <p>환각을 완전히 없앨 방법은 없습니다. 대신 결과물을 쓰기 전에 습관적으로 거치는 절차를 만들어두면 위험을 크게 줄일 수 있습니다.</p>
+    <p><strong><a class="term" href="#term-fact-check">사실검증</a></strong> — 모델이 제시한 숫자·사실·주장은 그대로 쓰지 말고, 반드시 독립적인 출처(공식 통계, 업계 리포트, 원문 기사 등)와 대조해서 확인합니다. 특히 소수점까지 맞아떨어지는, 지나치게 구체적으로 들리는 수치일수록 더 의심해야 합니다. 진짜 통계는 오히려 "약 60~70% 수준"처럼 범위로 표현되는 경우가 많고, 모델이 만든 가짜 수치일수록 부자연스럽게 정밀한 인상을 주는 경우가 흔합니다.</p>
+    <p><strong><a class="term" href="#term-source-check">출처확인</a></strong> — 모델에게 "이 주장의 실제 출처(원문 링크)를 알려줘"라고 요청한 뒤, 그 링크를 직접 열어서 (1) 페이지가 실제로 존재하는지, (2) 그 페이지가 정말 모델이 인용한 내용을 담고 있는지 두 단계 모두 확인합니다. 링크가 그럴듯해 보여도 실제로는 열리지 않거나, 열리더라도 전혀 다른 내용을 담고 있는 경우가 많습니다.</p>
+    <p>추가로 다음 습관도 도움이 됩니다. 모델에게 "이 답변에 얼마나 확신하는지", "확실하지 않은 부분이 있는지"를 직접 물어보는 것, 그리고 그 대답을 그대로 신뢰하지 않는 것입니다. 모델은 자신의 확신 수준을 정확히 자기 진단하는 능력이 없기 때문에, "저는 90% 확신합니다"라는 자기 보고 역시 또 하나의 그럴듯한 텍스트일 뿐 신뢰의 근거가 될 수 없습니다. 결국 신뢰를 만드는 것은 모델의 말투가 아니라, 사람이 직접 거친 교차 확인입니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>개념</th><th>한 줄 정리</th></tr></thead>
+      <tbody>
+        <tr><td><a class="term" href="#term-hallucination">환각</a></td><td>그럴듯하지만 사실이 아닌 내용을 자신감 있는 어조로 생성하는 현상</td></tr>
+        <tr><td>발생 원인</td><td>모델은 사실 검증 없이 다음 토큰의 통계적 확률만 예측하도록 학습됨</td></tr>
+        <tr><td><a class="term" href="#term-fact-check">사실검증</a></td><td>모델이 제시한 숫자·사실을 독립적인 출처와 대조해 확인하는 습관</td></tr>
+        <tr><td><a class="term" href="#term-source-check">출처확인</a></td><td>모델이 제시한 출처·링크가 실제 존재하고 주장을 뒷받침하는지 확인하는 습관</td></tr>
+      </tbody>
+    </table>
+    <p>핵심은 하나입니다. LLM의 답변이 유창하고 자신 있게 들린다고 해서 그것이 사실이라는 뜻은 아닙니다. 특히 숫자와 출처는 "일단 보이는 대로 믿는" 대신 "쓰기 전에 확인하는" 것을 원칙으로 삼아야 합니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 최근에 업무에서 모델에게 받은 통계나 인용 중, 실제로 원출처를 확인해 본 적이 있는지 떠올려보세요. 다음 모듈(2-4. GPT·Claude·Gemini·오픈소스 모델 비교하기)에서는 서로 다른 모델들이 이런 환각 경향에서 어떤 차이를 보이는지까지 함께 살펴봅니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-hallucination">
+      <div class="glossary-entry-head"><h3>환각 (Hallucination)</h3><a class="back-link" href="#sec-why">↑ 본문으로</a></div>
+      <p>LLM이 사실에 근거하지 않은 내용을, 마치 사실인 것처럼 자신감 있고 유창한 문장으로 생성하는 현상입니다. 모델이 의도적으로 거짓말을 하는 것이 아니라, 다음 토큰을 통계적으로 가장 그럴듯하게 예측하도록 학습된 구조 자체에서 비롯되는 근본적인 한계입니다. 존재하지 않는 통계, 존재하지 않는 논문·판례 인용, 사실과 다른 날짜·이름 등이 대표적인 형태입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-fact-check">
+      <div class="glossary-entry-head"><h3>사실검증 (Fact Verification)</h3><a class="back-link" href="#sec-verify">↑ 본문으로</a></div>
+      <p>모델이 제시한 숫자, 사실, 주장을 그대로 신뢰하지 않고 공식 통계·업계 리포트·원문 기사 등 독립적인 출처와 대조해서 정확성을 확인하는 절차입니다. 특히 소수점 단위까지 정밀해 보이는 수치나, 검증 없이 의사결정에 바로 쓰일 수치일수록 우선적으로 거쳐야 하는 습관입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-source-check">
+      <div class="glossary-entry-head"><h3>출처확인 (Source Checking)</h3><a class="back-link" href="#sec-verify">↑ 본문으로</a></div>
+      <p>모델이 제시한 출처나 링크가 (1) 실제로 존재하는지, (2) 존재한다면 정말로 모델이 인용한 내용을 담고 있는지를 사람이 직접 열어서 확인하는 절차입니다. 링크의 형식이 그럴듯하다는 것과 그 링크가 실제 유효한 근거라는 것은 전혀 다른 문제이기 때문에, 두 단계를 모두 확인해야 합니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://blog.kakaocloud.com/61" target="_blank" rel="noopener">&lt;지식 사전&gt; Chat-GPT는 왜 거짓말을 할까? 할루시네이션 현상의 원인과 해결 방법</a><span class="src-domain">blog.kakaocloud.com</span></li>
+          <li><a href="https://enterprise.kt.com/bt/dxstory/2521.do" target="_blank" rel="noopener">LLM의 환각현상, 어떻게 보완할 수 있을까?</a><span class="src-domain">enterprise.kt.com</span></li>
+          <li><a href="https://blog-ko.superb-ai.com/causes-and-solutions-for-hallucinations/" target="_blank" rel="noopener">환각 현상의 원인과 해결책</a><span class="src-domain">blog-ko.superb-ai.com</span></li>
+          <li><a href="https://www.aitimes.com/news/articleView.html?idxno=213362" target="_blank" rel="noopener">PwC, AI '환각 보고서' 파문...존재하지 않는 논문·가짜 출처 수두룩</a><span class="src-domain">aitimes.com</span></li>
+          <li><a href="https://zdnet.co.kr/view/?no=20260131112248" target="_blank" rel="noopener">AI학회에서 터진 '환각인용' 폭탄…어떻게 봐야 할까</a><span class="src-domain">zdnet.co.kr</span></li>
+          <li><a href="https://digitalsociety.or.kr/posts/eVtMw1o" target="_blank" rel="noopener">AI 환각(루시네이션), 인공지능이 만들어내는 '거짓의 진실'</a><span class="src-domain">digitalsociety.or.kr</span></li>
+          <li><a href="https://www.cio.com/article/3521946/%EB%B6%80%EC%A0%95%ED%99%95%ED%95%9C-%EC%9D%91%EB%8B%B5-%EA%B1%B8%EB%9F%AC%EB%82%B4%EA%B3%A0-%EC%83%9D%EC%84%B1%ED%98%95-ai-%ED%99%98%EA%B0%81-%ED%98%84%EC%83%81-%EB%B3%B4.html" target="_blank" rel="noopener">'부정확한 응답 걸러내고'… 생성형 AI 환각 현상 보완하는 접근법 3가지</a><span class="src-domain">cio.com</span></li>
+          <li><a href="https://nordvpn.com/ko/blog/what-is-ai-hallucination/" target="_blank" rel="noopener">AI 환각 현상의 원인과 예방법</a><span class="src-domain">nordvpn.com</span></li>
+          <li><a href="https://www.openads.co.kr/content/contentDetail?contsId=20017" target="_blank" rel="noopener">AI 환각이란? 브랜드 리스크와 대응 방법</a><span class="src-domain">openads.co.kr</span></li>
+          <li><a href="https://magazine.hankyung.com/business/article/202506195475b" target="_blank" rel="noopener">환각 없는 AI는 불가능한 신기루인가</a><span class="src-domain">magazine.hankyung.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.ibm.com/think/topics/ai-hallucinations" target="_blank" rel="noopener">What are AI hallucinations?</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://openai.com/index/why-language-models-hallucinate/" target="_blank" rel="noopener">Why language models hallucinate</a><span class="src-domain">openai.com</span></li>
+          <li><a href="https://hai.stanford.edu/ai-definitions/what-are-hallucinations" target="_blank" rel="noopener">What are Hallucinations (in AI)?</a><span class="src-domain">hai.stanford.edu</span></li>
+          <li><a href="https://www.evidentlyai.com/blog/ai-hallucinations-examples" target="_blank" rel="noopener">8 AI hallucinations examples</a><span class="src-domain">evidentlyai.com</span></li>
+          <li><a href="https://www.editage.com/blog/how-to-verify-ai-generated-citations-references-steps-checklist-examples/" target="_blank" rel="noopener">How to Spot Hallucinations in AI-Generated Citations and References</a><span class="src-domain">editage.com</span></li>
+          <li><a href="https://venturebeat.com/ai/stanford-study-finds-ai-legal-research-tools-prone-to-hallucinations" target="_blank" rel="noopener">Stanford study finds AI legal research tools prone to hallucinations</a><span class="src-domain">venturebeat.com</span></li>
+          <li><a href="https://www.morphllm.com/ai-hallucination-examples" target="_blank" rel="noopener">AI Hallucination Examples: A Catalog of What Goes Wrong and Why</a><span class="src-domain">morphllm.com</span></li>
+          <li><a href="https://botscrew.com/blog/guide-to-fixing-ai-hallucinations/" target="_blank" rel="noopener">When AI Makes Stuff Up: A Guide on How to Prevent AI Hallucinations</a><span class="src-domain">botscrew.com</span></li>
+          <li><a href="https://www.open.cx/blog/ai-hallucination-examples" target="_blank" rel="noopener">AI hallucination examples: 12 real cases and what they teach</a><span class="src-domain">open.cx</span></li>
+          <li><a href="https://graphwise.ai/fundamentals/what-is-a-llm-hallucination/" target="_blank" rel="noopener">What is a LLM Hallucination?</a><span class="src-domain">graphwise.ai</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 2-3 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

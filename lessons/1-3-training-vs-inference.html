@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1-3. 학습(training)과 추론(inference)의 차이</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="1-3">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 1 · AI 기초 체력 다지기</p>
+    <p class="eyebrow">Module 1-3</p>
+    <h1 class="title">학습(training)과 추론(inference)의 차이</h1>
+    <p class="subtitle">"모델을 만드는 일"과 "모델을 쓰는 일"은 완전히 다른 단계입니다. 이 둘을 구분하지 못하면 실무에서 "왜 이렇게 느리고 비싸지?" 같은 질문에 답할 수 없습니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">1-2에서 LLM이 토큰을 하나씩 예측하는 과정을 봤습니다. 그런데 "다음 토큰을 얼마나 정확히 예측할지"를 결정하는 능력 자체는 언제, 어떻게 만들어질까요? 이번 모듈에서는 그 능력을 만드는 <a class="term" href="#term-pretraining">사전학습</a> 단계와, 만들어진 능력을 실제로 사용하는 <a class="term" href="#term-inference">추론</a> 단계를 구분합니다.</p>
+
+    <h2 id="sec-pretraining">1) <a class="term" href="#term-pretraining">사전학습(pre-training)</a> — 모델이 "배우는" 단계</h2>
+    <p>사전학습은 아직 아무것도 모르는 모델에게 인터넷 텍스트, 책, 코드 등 방대한 데이터를 보여주면서 "이 문맥 다음에는 이런 토큰이 자주 나오더라"는 패턴을 스스로 찾게 하는 과정입니다. 이 과정에서 모델 내부의 파라미터(수십억~수천억 개의 숫자, 자세한 설명은 1-4 참고)가 조금씩 조정됩니다.</p>
+    <div class="example-box"><strong>비유</strong> — 사전학습은 신입 직원이 입사 전에 업계 전체의 책과 문서, 회의록을 몇 년치 통째로 읽으며 "이 업계에서는 대체로 이런 식으로 말하고 판단하는구나"를 체화하는 과정과 비슷합니다. 특정 회사의 업무를 배우는 게 아니라, 언어와 지식 전반의 감각을 기르는 단계입니다.</div>
+    <p>이 단계는 막대한 양의 GPU 연산과 몇 주~몇 달의 시간, 수백억 원 이상의 비용이 들어갑니다. 그래서 사전학습을 처음부터 직접 수행할 수 있는 곳은 OpenAI, Anthropic, Google 같은 소수의 회사뿐이고, 우리 대부분은 이미 사전학습이 끝난 모델을 "가져다 쓰는" 입장입니다.</p>
+
+    <h2 id="sec-finetuning">2) <a class="term" href="#term-finetuning">파인튜닝(fine-tuning)</a> — 배운 모델을 "다듬는" 중간 단계</h2>
+    <p>사전학습을 마친 모델은 언어를 꽤 잘 다루지만, 특정 업무나 말투, 형식에 맞춰져 있지는 않습니다. 이럴 때 이미 사전학습된 모델을 가져와, 상대적으로 적은 양의 전용 데이터로 추가 학습시켜 특정 목적에 맞게 다듬는 과정을 <strong>파인튜닝</strong>이라고 부릅니다. 사전학습이 "기초 체력을 통째로 기르는 것"이라면, 파인튜닝은 "그 체력을 특정 종목에 맞게 다듬는 것"에 가깝습니다.</p>
+    <p>파인튜닝은 사전학습과 추론 사이에 있는 중간 단계이자 선택 사항입니다. 모든 모델이 파인튜닝을 거치는 것은 아니며, ChatGPT나 Claude 같은 대화형 모델은 사전학습 이후 사람의 대화 습관에 맞추는 추가 학습(지시 따르기, 사람 피드백 반영 등)을 거칩니다. 파인튜닝을 우리 조직 데이터로 직접 수행하는 방법과 실무 판단 기준은 <strong>Phase 6</strong>에서 자세히 다룹니다.</p>
+
+    <h2 id="sec-inference">3) <a class="term" href="#term-inference">추론(inference)</a> — 우리가 "쓸 때" 실제로 일어나는 일</h2>
+    <p>추론은 이미 학습이 끝난(파라미터가 고정된) 모델에 입력을 넣고, 그 입력에 대한 출력을 뽑아내는 과정입니다. 우리가 ChatGPT나 Claude 채팅창에 질문을 입력하고 답을 받는 모든 순간이 바로 추론입니다. 1-2에서 본 "토큰화 → 확률분포 계산 → 토큰 선택 → 반복"의 전체 과정이 바로 추론 단계에서 일어나는 일입니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 620 200" width="620" height="200" role="img" aria-label="사전학습, 파인튜닝, 추론이 순서대로 이어지는 흐름 다이어그램">
+        <rect x="15" y="60" width="165" height="80" rx="10" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="97" y="90" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--ink)">사전학습</text>
+        <text x="97" y="110" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-soft)">방대한 데이터로</text>
+        <text x="97" y="125" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-soft)">파라미터를 조정</text>
+
+        <path d="M180 100 H225" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow3)"/>
+
+        <rect x="230" y="60" width="165" height="80" rx="10" fill="var(--surface)" stroke="var(--line-soft)" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="312" y="90" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--ink-soft)">파인튜닝</text>
+        <text x="312" y="110" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-faint)">(선택) 특정 목적에</text>
+        <text x="312" y="125" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-faint)">맞게 추가 학습</text>
+
+        <path d="M395 100 H440" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow3)"/>
+
+        <rect x="445" y="60" width="165" height="80" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="527" y="90" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--accent-strong)">추론</text>
+        <text x="527" y="110" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--accent-strong)">고정된 모델로</text>
+        <text x="527" y="125" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--accent-strong)">우리가 "쓰는" 순간</text>
+
+        <text x="97" y="175" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="10.5" fill="var(--ink-faint)">몇 주~몇 달 · 수백억 원↑</text>
+        <text x="312" y="175" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="10.5" fill="var(--ink-faint)">몇 시간~며칠</text>
+        <text x="527" y="175" text-anchor="middle" font-family="'IBM Plex Mono', monospace" font-size="10.5" fill="var(--ink-faint)">요청마다 수 초</text>
+
+        <defs>
+          <marker id="arrow3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="var(--ink-faint)"/></marker>
+        </defs>
+      </svg>
+    </div>
+
+    <p>학습이 "역전파(backpropagation)"를 통해 파라미터를 조금씩 고쳐나가는 무거운 계산이라면, 추론은 이미 고정된 파라미터로 입력을 한 번 통과시켜 출력을 뽑는 상대적으로 가벼운 계산입니다. 그래서 학습은 몇 주가 걸리지만, 추론은 우리가 채팅창에서 체감하듯 몇 초 안에 끝납니다.</p>
+
+    <h2 id="sec-cost">4) <a class="term" href="#term-inference-cost">추론비용</a> — 실무에서 매번 체감하는 값</h2>
+    <p>추론은 학습에 비해 가볍지만, 공짜는 아닙니다. API를 호출할 때마다 서버의 GPU가 우리가 보낸 토큰을 처리하고 새로운 토큰을 생성하는데, 이 계산에는 그때그때 실제 비용이 듭니다. 그래서 OpenAI, Anthropic 같은 제공사는 "입력 토큰 수"와 "출력 토큰 수"를 기준으로 요금을 매깁니다. 대체로 출력 토큰이 입력 토큰보다 비싼데, 새 토큰 하나를 만들 때마다 그 앞의 모든 문맥을 다시 참고해야 하기 때문입니다.</p>
+    <div class="example-box"><strong>실무 감각</strong> — 같은 요청이라도 (1) 더 큰 모델을 쓸수록, (2) 프롬프트나 대화 기록이 길어질수록, (3) 응답 길이가 길어질수록 추론 비용과 응답 속도가 함께 늘어납니다. 그래서 실무에서는 간단한 분류·요약 작업에는 가볍고 저렴한 모델을, 복잡한 추론이 필요한 작업에만 크고 비싼 모델을 쓰는 식으로 비용과 속도를 관리합니다.</div>
+    <p>즉 "이 기능을 LLM으로 만들면 얼마나 들까, 얼마나 빠를까"라는 질문은 결국 추론 단계의 토큰 사용량과 모델 크기에 대한 질문입니다. 기획·운영 관점에서 LLM 기능을 설계할 때 반드시 감안해야 하는 변수입니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>단계</th><th>한 줄 정의</th><th>빈도·비용</th></tr></thead>
+      <tbody>
+        <tr><td><a class="term" href="#term-pretraining">사전학습</a></td><td>방대한 데이터로 모델 파라미터를 처음 조정하는 단계</td><td>드묾 · 매우 비쌈</td></tr>
+        <tr><td><a class="term" href="#term-finetuning">파인튜닝</a></td><td>사전학습된 모델을 특정 목적에 맞게 추가 학습(선택)</td><td>가끔 · 중간 비용</td></tr>
+        <tr><td><a class="term" href="#term-inference">추론</a></td><td>고정된 모델에 입력을 넣어 출력을 뽑는 것 (우리가 "쓰는" 단계)</td><td>매 요청마다 · 요청당 소액</td></tr>
+      </tbody>
+    </table>
+    <p>우리가 실무에서 매일 마주치는 것은 거의 항상 추론입니다. "모델을 학습시킨다"와 "모델을 쓴다"는 완전히 다른 작업이라는 걸 구분하는 순간, API 요금이 왜 토큰 단위로 매겨지는지, 왜 긴 대화일수록 느려지고 비싸지는지가 자연스럽게 설명됩니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — "우리 팀이 ChatGPT API로 매달 요금을 내는 건 학습 비용일까요, 추론 비용일까요?"에 스스로 답해보세요. 다음 모듈(1-4. 실무에서 자주 듣는 필수 용어 정리)에서는 이번 모듈에서 다루지 못한 파라미터, 임베딩, 컨텍스트 윈도우, temperature 같은 회의 단골 용어를 한 번에 정리합니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-pretraining">
+      <div class="glossary-entry-head"><h3>사전학습 (Pre-training)</h3><a class="back-link" href="#sec-pretraining">↑ 본문으로</a></div>
+      <p>아직 학습되지 않은(파라미터가 무작위인) 모델에게 방대한 텍스트 데이터를 보여주며, 다음 토큰을 예측하는 능력을 처음부터 익히게 하는 학습 단계입니다. 라벨이 붙지 않은 데이터를 그대로 사용하는 비지도 학습 방식이 일반적이며, LLM 개발 과정에서 가장 많은 컴퓨팅 자원(GPU)과 데이터, 시간을 소모합니다. 이 단계를 직접 수행할 수 있는 조직은 전 세계적으로 극소수입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-finetuning">
+      <div class="glossary-entry-head"><h3>파인튜닝 (Fine-tuning)</h3><a class="back-link" href="#sec-finetuning">↑ 본문으로</a></div>
+      <p>이미 사전학습된 모델을 가져와, 상대적으로 적은 양의 목적별 데이터로 추가 학습시켜 특정 작업이나 말투, 형식에 맞게 다듬는 과정입니다. 사전학습과 추론 사이의 중간 단계이며 선택적으로 수행됩니다. 조직 내부 데이터로 직접 파인튜닝을 수행하는 실무 방법은 Phase 6에서 다룹니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-inference">
+      <div class="glossary-entry-head"><h3>추론 (Inference)</h3><a class="back-link" href="#sec-inference">↑ 본문으로</a></div>
+      <p>학습이 끝나 파라미터가 고정된 모델에 새로운 입력을 넣고 출력을 뽑아내는 과정입니다. 우리가 ChatGPT·Claude 같은 서비스를 "사용"할 때 매 순간 일어나는 일이 바로 추론이며, 1-2에서 다룬 토큰화·확률분포 계산·오토리그레시브 생성이 모두 이 단계 안에서 실행됩니다. 학습보다 계산량이 훨씬 가볍지만, 요청마다 실제 비용과 시간이 듭니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-inference-cost">
+      <div class="glossary-entry-head"><h3>추론비용 (Inference Cost)</h3><a class="back-link" href="#sec-cost">↑ 본문으로</a></div>
+      <p>추론 단계에서 요청을 처리할 때마다 실제로 발생하는 컴퓨팅 비용입니다. LLM API는 대개 입력 토큰 수와 출력 토큰 수를 기준으로 요금을 매기며, 모델 크기가 클수록, 문맥(프롬프트·대화 기록)이 길수록, 응답이 길수록 비용과 응답 속도가 함께 늘어납니다. 서비스를 설계할 때 어떤 작업에 어떤 크기의 모델을 쓸지 결정하는 핵심 기준이 됩니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://brunch.co.kr/@ashashash/330" target="_blank" rel="noopener">AI 학습, 사전학습, 파인튜닝의 차이</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://wikidocs.net/293565" target="_blank" rel="noopener">05-02. LLM 학습방식, 파인튜닝 기법</a><span class="src-domain">wikidocs.net</span></li>
+          <li><a href="https://kr.appen.com/blog/fine-tuning/" target="_blank" rel="noopener">파인튜닝(Fine-tuning)이란? - LLM 구축 방법</a><span class="src-domain">kr.appen.com</span></li>
+          <li><a href="https://techblog.samsung.com/blog/article/75" target="_blank" rel="noopener">파인튜닝으로 LLM 편향 개선하기</a><span class="src-domain">techblog.samsung.com</span></li>
+          <li><a href="https://blog.sionic.ai/finetuning_llama" target="_blank" rel="noopener">지극히 사적인 나만의 LLM, 가질 수 있을까? [1편 - 파인튜닝]</a><span class="src-domain">blog.sionic.ai</span></li>
+          <li><a href="https://www.xdnode.co.kr/guide/?bmode=view&idx=169614027" target="_blank" rel="noopener">LLM 학습 및 파인튜닝 완벽 가이드: AI 모델 학습 원리부터 GPU 인프라 구축까지</a><span class="src-domain">xdnode.co.kr</span></li>
+          <li><a href="https://www.alchera.ai/resource/blog/ac-large-scale-llm-operation-for-api-cost-optimization" target="_blank" rel="noopener">효율적인 운영 비용 감소, 대규모 LLM 운영을 위한 API 비용 최적화</a><span class="src-domain">alchera.ai</span></li>
+          <li><a href="https://www.minzkn.com/vibecoding/pages/monitoring-costs.html" target="_blank" rel="noopener">LLM API 비용 모니터링</a><span class="src-domain">minzkn.com</span></li>
+          <li><a href="https://llmpricing.dev/ko/" target="_blank" rel="noopener">LLM 가격 비교 — 1900+ 모델 × 217+ 개 서비스</a><span class="src-domain">llmpricing.dev</span></li>
+          <li><a href="https://aisparkup.com/posts/5191" target="_blank" rel="noopener">LLM API 비용 90% 절약하기 - 성능 저하 없이 AI 서비스 비용을 줄이는 7가지 전략</a><span class="src-domain">aisparkup.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.databricks.com/blog/llm-fine-tuning" target="_blank" rel="noopener">A Practical Guide to LLM Fine Tuning</a><span class="src-domain">databricks.com</span></li>
+          <li><a href="https://developers.google.com/machine-learning/crash-course/llm/tuning" target="_blank" rel="noopener">LLMs: Fine-tuning, distillation, and prompt engineering</a><span class="src-domain">developers.google.com</span></li>
+          <li><a href="https://medium.com/@aditi.sikarwar25/understanding-the-llm-lifecycle-pre-training-fine-tuning-and-instruction-tuning-0fd0826f0f8a" target="_blank" rel="noopener">Understanding the LLM Lifecycle: Pre-training, Fine-tuning, and Instruction-tuning</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://introl.com/blog/cost-per-token-llm-inference-optimization" target="_blank" rel="noopener">Cost Per Token: Optimizing GPU Infrastructure for LLM Inference</a><span class="src-domain">introl.com</span></li>
+          <li><a href="https://featherless.ai/blog/llm-api-pricing-comparison-2026-complete-guide-inference-costs" target="_blank" rel="noopener">LLM API Pricing Comparison 2026: The Complete Guide to Inference Costs</a><span class="src-domain">featherless.ai</span></li>
+          <li><a href="https://introl.com/blog/inference-unit-economics-true-cost-per-million-tokens-guide" target="_blank" rel="noopener">Inference Unit Economics: The True Cost Per Million Tokens</a><span class="src-domain">introl.com</span></li>
+          <li><a href="https://dev.to/kamya_shah_e69d5dd78f831c/what-is-llm-cost-and-latency-a-guide-for-ai-teams-1gm5" target="_blank" rel="noopener">What is LLM Cost and Latency? A Guide for AI Teams</a><span class="src-domain">dev.to</span></li>
+          <li><a href="https://www.digitalocean.com/blog/llm-inference-tradeoffs" target="_blank" rel="noopener">The LLM Inference Trilemma: Throughput, Latency, Cost</a><span class="src-domain">digitalocean.com</span></li>
+          <li><a href="https://inworld.ai/resources/llm-inference-cost-at-scale" target="_blank" rel="noopener">LLM Inference Cost at Scale</a><span class="src-domain">inworld.ai</span></li>
+          <li><a href="https://packet.ai/blog/llm-inference-cost" target="_blank" rel="noopener">LLM Inference Cost 2026: Cost per Million Tokens</a><span class="src-domain">packet.ai</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 1-3 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

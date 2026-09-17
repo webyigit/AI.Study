@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>단계적으로 생각하게 만들기 (Chain-of-Thought)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="3-3">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 3 · 프롬프트 엔지니어링</p>
+    <p class="eyebrow">Module 3-3</p>
+    <h1 class="title">단계적으로 생각하게 만들기 (Chain-of-Thought)</h1>
+    <p class="subtitle">여러 단계를 거쳐야 풀리는 복잡한 문제일수록, 곧바로 답을 요구하기보다 "먼저 단계별로 생각한 다음 답하라"고 지시할 때 정확도와 일관성이 눈에 띄게 좋아집니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">3-1에서는 역할·맥락·지시·형식 4요소로 프롬프트의 "틀"을 짜는 법을, 3-2에서는 예시를 몇 개 보여줄지(zero-shot vs few-shot)를 다뤘습니다. 이번 모듈의 Chain-of-Thought(CoT)는 그 틀 안에 끼워 넣는 또 하나의 지시 기법입니다 — "무엇을, 어떤 형식으로"를 넘어서 "어떤 순서로 생각해서" 답을 만들지까지 지정하는 것입니다. 4요소 구조나 few-shot 예시와 얼마든지 함께 쓸 수 있습니다.</p>
+
+    <h2 id="sec-why">1) 왜 복잡한 질문엔 곧바로 답하게 하면 틀릴까</h2>
+    <p>LLM은 문장을 통째로 이해한 뒤 답을 "떠올리는" 것이 아니라, 지금까지 나온 토큰들을 보고 다음 토큰을 하나씩 예측하는 방식으로 글을 만들어냅니다. 질문이 단순하면 이 방식만으로도 충분하지만, 여러 단계를 거쳐야 풀리는 문제(일정 배분, 예산 계산, 여러 조건을 동시에 고려하는 의사결정 등)에서 곧바로 결론 문장부터 쓰게 하면, 모델은 중간 <a class="term" href="#term-reasoning-process">추론과정</a>을 거치지 않고 "그럴듯하게 들리는" 문장을 먼저 완성하는 쪽으로 흘러가기 쉽습니다.</p>
+    <p>이건 모델이 "게을러서"가 아니라, 프롬프트가 결론을 먼저 요구하면 모델도 결론 토큰부터 생성하려 하기 때문입니다. 중간에 논리적으로 거쳐야 할 단계(예: "리서치가 며칠 걸리는지 먼저 계산한다")를 생략한 채로 답이 만들어지면, 언뜻 자신 있어 보이지만 실제로는 앞뒤가 맞지 않는 결과가 나올 수 있습니다. 실무에서 종종 보는 "말은 되는데 숫자를 더해보면 안 맞는" 답변이 바로 이런 경우입니다.</p>
+
+    <h2 id="sec-what">2) Chain-of-Thought란 — 생각의 순서를 프롬프트에 적어주는 것</h2>
+    <p>Chain-of-Thought는 거창한 기술이 아닙니다. 프롬프트에 "먼저 단계별로 생각한 다음 답을 말해줘"라는 한 문장을 추가하거나, "1) 먼저 ~을 파악한다 2) 그다음 ~을 계산한다 3) 마지막으로 ~을 정리한다"처럼 <a class="term" href="#term-step-breakdown">단계분해</a>를 미리 프롬프트 안에 적어주는 것이 전부입니다. 이렇게 뼈대를 제시해주는 방식을 흔히 "가이드형(guided) CoT"라고 부르고, "단계별로 생각해봐" 한 마디만 던지는 방식은 "제로샷(zero-shot) CoT"라고 부릅니다.</p>
+    <p>핵심은 이것이 단순히 "보기 좋게 정리해서 보여달라"는 요청이 아니라는 점입니다. 모델은 자기가 방금 만든 토큰을 다시 입력으로 받아 다음 토큰을 예측하기 때문에, 중간 추론 문장을 실제로 생성하게 만들면 그 문장 자체가 다음 계산의 근거가 됩니다. 즉 "1단계: 리서치는 최소 4일 필요하다"라는 문장을 모델이 직접 써낸 순간, 그 뒤에 이어지는 "그렇다면 디자인은 며칠 남는다"는 계산은 그 문장을 조건으로 삼아 진행됩니다. 단계를 글로 쓰게 하는 것이 결과물의 겉모습만 바꾸는 게 아니라, 모델이 실제로 거치는 계산 경로 자체를 바꾸는 이유가 여기에 있습니다.</p>
+
+    <h2 id="sec-example">3) 직접 비교해보기 — 3주 온보딩 플로우 일정 짜기</h2>
+    <p>기획자가 자주 마주치는 "일정 배분" 문제로 비교해보겠습니다. 같은 질문을 곧바로 답하게 했을 때와, 단계별로 생각하도록 지시했을 때의 차이입니다.</p>
+
+    <div class="example-box">
+      <strong>BEFORE — 직접 답 요구</strong><br>
+      프롬프트: "우리 팀은 3주 안에 신규 온보딩 플로우를 출시해야 하는데, 리서치·디자인·개발·QA 일정을 어떻게 배분해야 할까?"<br><br>
+      결과: "리서치 3일, 디자인 5일, 개발 8일, QA 4일 정도로 배분하면 좋을 것 같습니다. 일정이 촉박하니 최대한 빠르게 진행하는 것을 추천드립니다." — 숫자를 더하면 20일로 21일(3주)에 얼추 맞아 보이지만, 왜 디자인이 5일인지, 개발과 QA가 겹칠 수 있는지, 리서치가 늦어지면 뒤 일정이 어떻게 되는지에 대한 근거가 전혀 없고, 매번 물어볼 때마다 숫자가 조금씩 바뀝니다.
+    </div>
+    <div class="example-box">
+      <strong>AFTER — 단계별로 생각하도록 지시</strong><br>
+      프롬프트: "우리 팀은 3주 안에 신규 온보딩 플로우를 출시해야 해. 곧바로 결론부터 내지 말고 단계별로 생각해보자. 1) 먼저 출시까지 반드시 거쳐야 하는 작업 단계를 나열하고 2) 그다음 각 단계가 병렬로 진행 가능한지 순차적으로만 가능한지 판단하고 3) 그 판단을 근거로 일수를 배분하고 4) 마지막으로 최종 일정표와 리스크 요인을 정리해줘."<br><br>
+      결과 (요약): "1) 필요한 단계: 사용자 리서치 → 플로우 설계/디자인 → 개발 → QA. 2) 리서치는 디자인의 전제 조건이라 순차적이어야 하지만, QA 케이스 설계는 개발과 병렬로 시작할 수 있음. 3) 리서치 4일 + 디자인 5일(순차, 총 9일) 이후 개발 8일과 QA 케이스 설계를 병렬 진행, 개발 완료 후 실제 QA 4일 → 총 21일. 4) 리스크: 리서치가 하루라도 늦어지면 뒤 일정이 그대로 밀리므로, 리서치 단계에 1일의 버퍼를 두는 것을 권장." — 왜 그런 배분이 나왔는지 근거가 드러나고, 병렬 가능 여부까지 짚어주기 때문에 더 미덥고 재사용 가능한 답이 됩니다.
+    </div>
+    <p>두 프롬프트의 질문 내용은 똑같습니다. 달라진 것은 "곧바로 답해"인지 "단계를 밟아서 답해"인지 뿐인데, 후자는 숫자의 근거와 리스크까지 함께 딸려 나옵니다. 이것이 바로 CoT가 만드는 차이입니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>상황</th><th>CoT 적용 여부</th></tr></thead>
+      <tbody>
+        <tr><td>일정 배분·예산 계산처럼 여러 조건을 동시에 따져야 할 때</td><td>큰 효과 — 반드시 적용</td></tr>
+        <tr><td>여러 옵션을 비교해 하나를 추천해야 할 때</td><td>큰 효과 — 근거가 드러나 신뢰도↑</td></tr>
+        <tr><td>단순 사실 조회, 번역, 포맷 변환처럼 한 번에 끝나는 작업</td><td>과합니다 — 오히려 응답만 길어짐</td></tr>
+        <tr><td>간단한 분류·태깅 작업</td><td>불필요 — 직접 답 요구가 더 빠르고 정확</td></tr>
+      </tbody>
+    </table>
+    <p>CoT를 끌어내는 방법은 크게 세 가지입니다. ① "단계별로 생각한 다음 답해줘"처럼 명시적으로 지시하는 방법(제로샷 CoT), ② 3-2에서 배운 few-shot과 결합해 "추론 과정이 포함된 예시"를 몇 개 먼저 보여주는 방법, ③ 이번 예시처럼 "1) 먼저 ~ 2) 그다음 ~"으로 <a class="term" href="#term-step-breakdown">단계분해</a>의 뼈대 자체를 프롬프트에 적어주는 방법입니다. 셋 다 목적은 같습니다 — 모델이 결론으로 직행하지 못하게, 중간 <a class="term" href="#term-reasoning-process">추론과정</a>을 글로 쓰게 만드는 것입니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 최근에 썼던 복잡한 프롬프트(여러 조건이 얽힌 질문) 하나를 골라, 끝에 "곧바로 답하지 말고 단계별로 생각한 다음 답해줘"를 붙여서 다시 실행해보세요. 답의 구조와 근거가 얼마나 달라지는지 비교하는 것이 오늘의 점검입니다. 다음 모듈(3-4. 시스템 프롬프트와 페르소나 설계)에서는 매번 이런 지시를 반복하지 않도록, 대화 내내 유지되는 규칙과 성격(페르소나)을 미리 설정해 재사용 가능한 나만의 어시스턴트를 만드는 법을 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-reasoning-process">
+      <div class="glossary-entry-head"><h3>추론과정 (Reasoning Process)</h3><a class="back-link" href="#sec-why">↑ 본문으로</a></div>
+      <p>모델이 최종 답을 내놓기까지 거치는 중간 판단과 계산의 흐름을 말합니다. LLM은 다음 토큰을 하나씩 예측하며 글을 쓰기 때문에, 이 흐름을 실제 문장으로 써내지 않으면 모델 내부적으로도 제대로 거치지 않을 수 있습니다. 예를 들어 "리서치 4일, 디자인 5일이니 합쳐서 9일"이라는 문장을 모델이 직접 쓰는 것 자체가 추론과정을 외부로 드러내는 일이고, 이 문장이 다음 계산(개발·QA 일정)의 근거가 됩니다. 결론만 요구하면 이 과정이 생략되어 근거 없는 답이 나오기 쉽습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-step-breakdown">
+      <div class="glossary-entry-head"><h3>단계분해 (Step Breakdown)</h3><a class="back-link" href="#sec-what">↑ 본문으로</a></div>
+      <p>하나의 크고 복잡한 질문을 "1) 먼저 ~ 2) 그다음 ~ 3) 마지막으로 ~"처럼 순서가 있는 작은 하위 질문들로 쪼개는 것을 말합니다. 프롬프트 안에 이 순서를 미리 적어주면(가이드형 CoT), 모델이 스스로 순서를 정하게 두는 것보다 더 일관되고 예측 가능한 결과를 얻을 수 있습니다. 예를 들어 "일정을 어떻게 배분할까?"를 "① 필요한 작업 나열 ② 병렬/순차 여부 판단 ③ 일수 배분 ④ 최종 정리"로 단계분해하면, 매번 같은 틀로 답이 나오게 됩니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://docs.anthropic.com/ko/docs/build-with-claude/prompt-engineering/chain-of-thought" target="_blank" rel="noopener">프롬프팅 모범 사례 — Claude에게 생각할 공간 주기</a><span class="src-domain">docs.anthropic.com</span></li>
+          <li><a href="https://kr.appen.com/blog/chain-of-thought-for-llm/" target="_blank" rel="noopener">CoT(Chain-of-Thought) — LLM 추론 능력 향상 기법</a><span class="src-domain">kr.appen.com</span></li>
+          <li><a href="https://blog.kakaocloud.com/87" target="_blank" rel="noopener">지식 사전: 프롬프트 엔지니어링이란 ③ — 고급 기법 (CoT, ToT, ReAct)</a><span class="src-domain">blog.kakaocloud.com</span></li>
+          <li><a href="https://blog.kakaocloud.com/86" target="_blank" rel="noopener">지식 사전: 프롬프트 엔지니어링이란 ② — 기초 기법 (제로샷, 퓨샷, 체이닝)</a><span class="src-domain">blog.kakaocloud.com</span></li>
+          <li><a href="https://brunch.co.kr/@botongmarketer/627" target="_blank" rel="noopener">AI 프롬프팅: '논리적 추론'을 위한 고급 가이드</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://wikidocs.net/270681" target="_blank" rel="noopener">02-3 CoT, LLM의 한계를 뛰어넘는 열쇠</a><span class="src-domain">wikidocs.net</span></li>
+          <li><a href="https://academy.codefriends.net/ko/ai/prompt-engineering/basics/chapter-2/chain-of-thought" target="_blank" rel="noopener">천리 길도 한 걸음부터, 생각의 사슬(Chain of Thought) 프롬프팅</a><span class="src-domain">academy.codefriends.net</span></li>
+          <li><a href="https://usingu.co.kr/ai-%ED%99%9C%EC%9A%A9-%EB%85%B8%ED%8A%B8/ai-prompt-guide/ai-%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8-%EA%B0%80%EC%9D%B4%EB%93%9C-4-%EB%8B%A8%EA%B3%84%EC%A0%81-%EC%82%AC%EA%B3%A0-%ED%9D%90%EB%A6%84-chain-of-thought/" target="_blank" rel="noopener">[AI 프롬프트 가이드] 4 — 단계적 사고 흐름 Chain of Thought</a><span class="src-domain">usingu.co.kr</span></li>
+          <li><a href="https://blog-ko.superb-ai.com/common-prompt-engineering-techniques/" target="_blank" rel="noopener">대표적인 프롬프트 엔지니어링 기법들</a><span class="src-domain">blog-ko.superb-ai.com</span></li>
+          <li><a href="https://velog.io/@hoony19980/Langchain-%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8-%EC%97%94%EC%A7%80%EB%8B%88%EC%96%B4%EB%A7%81-2-CoT-Chain-of-Thought" target="_blank" rel="noopener">[Langchain] 프롬프트 엔지니어링 (2) CoT (Chain of Thought)</a><span class="src-domain">velog.io</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://docs.claude.com/en/docs/build-with-claude/prompt-engineering/chain-of-thought" target="_blank" rel="noopener">Let Claude think (chain of thought prompting) to increase performance</a><span class="src-domain">docs.claude.com</span></li>
+          <li><a href="https://www.promptingguide.ai/techniques/cot" target="_blank" rel="noopener">Chain-of-Thought Prompting</a><span class="src-domain">promptingguide.ai</span></li>
+          <li><a href="https://www.ibm.com/think/topics/chain-of-thoughts" target="_blank" rel="noopener">What is chain of thought (CoT) prompting?</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://arxiv.org/abs/2201.11903" target="_blank" rel="noopener">Chain-of-Thought Prompting Elicits Reasoning in Large Language Models</a><span class="src-domain">arxiv.org</span></li>
+          <li><a href="https://arxiv.org/abs/2205.11916" target="_blank" rel="noopener">Large Language Models are Zero-Shot Reasoners</a><span class="src-domain">arxiv.org</span></li>
+          <li><a href="https://www.datacamp.com/tutorial/chain-of-thought-prompting" target="_blank" rel="noopener">Chain-of-Thought Prompting: Step-by-Step Reasoning with LLMs</a><span class="src-domain">datacamp.com</span></li>
+          <li><a href="https://www.coursera.org/articles/chain-of-thought-prompting" target="_blank" rel="noopener">Chain of Thought Prompting</a><span class="src-domain">coursera.org</span></li>
+          <li><a href="https://www.vellum.ai/blog/chain-of-thought-prompting-cot-everything-you-need-to-know" target="_blank" rel="noopener">Chain of Thought Prompting (CoT): Everything You Need to Know</a><span class="src-domain">vellum.ai</span></li>
+          <li><a href="https://learnprompting.org/docs/intermediate/zero_shot_cot" target="_blank" rel="noopener">Zero-Shot CoT Prompting: Improving AI with Step-by-Step Reasoning</a><span class="src-domain">learnprompting.org</span></li>
+          <li><a href="https://medium.com/@pankaj_pandey/chain-of-thought-prompting-guiding-llms-step-by-step-e6eac32d02d8" target="_blank" rel="noopener">Chain of Thought Prompting: Guiding LLMs Step-by-Step</a><span class="src-domain">medium.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 3-3 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

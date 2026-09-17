@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>8-1. 나만의 미니 프로젝트 기획해보기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="8-1">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 8 · 다음 단계</p>
+    <p class="eyebrow">Module 8-1</p>
+    <h1 class="title">나만의 미니 프로젝트 기획해보기</h1>
+    <p class="subtitle">1-1부터 7-5까지 배운 조각들을 흩어진 지식으로 남겨두지 않고, 작지만 끝까지 완성되는 결과물 하나로 묶어보는 방법입니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">지금까지의 모듈은 대부분 "개념을 이해하고, 작은 예시로 연습하는" 구조였습니다. 이번 모듈은 다릅니다. 배운 것을 <strong>내 손으로 처음부터 끝까지 완성해보는</strong> 단계입니다. 거창한 서비스를 만들 필요는 없습니다. 오히려 작을수록, 빨리 끝낼수록 좋습니다.</p>
+
+    <h2 id="sec-why">1) 왜 지금, 미니 프로젝트인가</h2>
+    <p>커리큘럼을 완주했다고 해서 그 지식이 저절로 몸에 남지는 않습니다. 강의나 아티클로 배운 개념은 시간이 지나면 빠르게 휘발되는데, 이를 막는 가장 확실한 방법은 <strong>실제로 써서 문제를 해결해보는 것</strong>입니다. 연구들도 일관되게 같은 결론을 가리킵니다 — 수동적으로 읽거나 듣기만 한 지식보다, 직접 만들면서 얻은 지식이 훨씬 오래 남고 실전 상황에 더 잘 옮겨간다는 것입니다.</p>
+    <p>또한 미니 프로젝트는 여러 모듈에서 따로 배운 조각들을 한 번에 엮어보는 자리이기도 합니다. 예를 들어 <strong>3-6의 실전 프롬프트</strong>, <strong>4-4의 회의록 자동 요약</strong>, <strong>6-2의 노코드 자동화</strong>를 따로따로 "이해는 했지만" 실제로 연결해본 적은 없을 수 있습니다. 미니 프로젝트는 이 연결 지점을 직접 확인하는 자리입니다.</p>
+
+    <h2 id="sec-criteria">2) 좋은 미니 프로젝트의 세 가지 조건</h2>
+    <p>사이드 프로젝트가 흐지부지되는 가장 흔한 이유는 재능 부족이 아니라, <strong>완성 기준이 없고 범위가 계속 늘어나기 때문</strong>입니다. 그래서 아이디어를 고를 때부터 다음 세 가지를 기준으로 삼는 것이 좋습니다.</p>
+    <div class="example-box"><strong>작을 것</strong> — 집중해서 매달렸을 때 1~2주 안에 첫 버전이 나오지 않는다면 범위가 너무 큽니다. "완벽한 도구"가 아니라 "한 가지 문제를 겨우 풀어내는 도구"를 목표로 삼으세요.</div>
+    <div class="example-box"><strong>실제 문제일 것</strong> — 가상의 문제보다, 이번 주에 내가 실제로 겪은 귀찮음(반복되는 회의록 정리, 매번 새로 짜는 리서치 프롬프트 등)에서 출발한 프로젝트가 끝까지 갈 확률이 훨씬 높습니다.</div>
+    <div class="example-box"><strong>완료 지점이 있을 것</strong> — "언젠가 더 다듬어야지"가 아니라, "이 조건을 만족하면 끝"이라는 구체적인 완료 기준을 프로젝트를 시작하기 전에 먼저 정해두세요.</div>
+
+    <h2 id="sec-ideas">3) 시작하기 좋은 예시 프로젝트 4가지</h2>
+    <p>UX·프로덕트 기획자의 실무와 맞닿아 있으면서, 이 커리큘럼에서 배운 여러 모듈을 자연스럽게 엮을 수 있는 아이디어 네 가지를 소개합니다. 그대로 따라 해도 되고, 내 업무 상황에 맞게 변형해도 좋습니다.</p>
+    <table class="summary">
+      <thead><tr><th>프로젝트</th><th>무엇을 만드는가</th><th>주로 엮이는 모듈</th></tr></thead>
+      <tbody>
+        <tr><td>AI 회의록 정리 워크플로우</td><td>회의 녹음을 전사 → 요약 → 결정사항/액션아이템 정리까지 자동으로 흘려보내는 파이프라인</td><td>4-4, 6-2</td></tr>
+        <tr><td>개인 AI 리서치 어시스턴트</td><td>관심 주제를 던지면 정해진 형식(배경·핵심 발견·출처)으로 정리해주는 나만의 리서치 프롬프트 세트</td><td>2-5, 3-6</td></tr>
+        <tr><td>사용자 인터뷰 인사이트 정리 도구</td><td>인터뷰 녹취를 업로드하면 주제별로 태깅하고 페르소나 초안까지 뽑아주는 워크플로우</td><td>4-2, 6-2</td></tr>
+        <tr><td>업무용 프롬프트 라이브러리</td><td>기획서·보고서 등 반복 작성하는 문서용 프롬프트를 모아 버전 관리하는 나만의 도구함</td><td>3-1~3-5, 4-1</td></tr>
+      </tbody>
+    </table>
+    <div class="example-box"><strong>예시로 살펴보는 "AI 회의록 정리 워크플로우"</strong> — 회의 녹음 파일을 클로바노트 같은 전사 도구에 넣고, 나온 텍스트를 4-4에서 연습한 요약 프롬프트에 붙여 결정사항·액션아이템을 뽑습니다. 여기까지는 수동으로도 충분히 가능한 범위입니다. 시간이 남으면 6-2에서 다룬 노코드 자동화 도구로 "녹음 파일 업로드 → 전사 → 요약 → 슬랙 전송"까지 자동으로 이어지게 만들면 완성도가 한 단계 올라갑니다. 중요한 것은 처음부터 자동화까지 욕심내지 않고, 수동 버전이 먼저 실제로 돌아가는 것을 확인한 다음 자동화를 얹는 순서입니다.</div>
+
+    <h2 id="sec-checklist">4) 프로젝트 스코핑 체크리스트</h2>
+    <p>아이디어를 정했다면, 시작하기 전에 아래 네 가지 질문에 한두 문장씩 답을 적어보세요. 이 표 하나만 채워도 "무엇을 만들지 몰라서" 멈추는 일은 크게 줄어듭니다.</p>
+    <table class="summary">
+      <thead><tr><th>항목</th><th>스스로에게 던질 질문</th></tr></thead>
+      <tbody>
+        <tr><td>목표</td><td>이 프로젝트가 풀어주는 나의 구체적인 불편함은 무엇인가? (예: "매주 회의록 정리에 30분씩 쓰는 게 아깝다")</td></tr>
+        <tr><td>범위</td><td>첫 버전에 반드시 있어야 하는 기능은 무엇이고, 나중으로 미뤄도 되는 기능은 무엇인가?</td></tr>
+        <tr><td>사용할 도구</td><td>어떤 모듈에서 배운 방법(프롬프트 구조, 노코드 자동화, RAG 등)을 조합할 것인가?</td></tr>
+        <tr><td>완료 기준</td><td>어떤 조건을 만족하면 "완성"이라고 부를 것인가? (예: "실제 회의 2건을 이 워크플로우로 정리해봤다")</td></tr>
+      </tbody>
+    </table>
+    <p>완료 기준은 특히 중요합니다. 기준이 없으면 "조금만 더 다듬으면 완벽해질 것 같아서" 계속 미루게 되고, 결국 아무것도 공개되지 않은 채 흐지부지되기 쉽습니다. 목표는 완벽한 프로덕트가 아니라, <strong>내가 실제로 한 번 이상 써본 작은 결과물</strong>입니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>단계</th><th>핵심</th></tr></thead>
+      <tbody>
+        <tr><td>왜</td><td>배운 지식은 직접 만들어봐야 오래 남는다</td></tr>
+        <tr><td>조건</td><td>작을 것, 실제 문제일 것, 완료 지점이 있을 것</td></tr>
+        <tr><td>아이디어</td><td>회의록 자동화·리서치 어시스턴트·인터뷰 정리 도구·프롬프트 라이브러리 등</td></tr>
+        <tr><td>체크리스트</td><td>목표 · 범위 · 사용할 도구 · 완료 기준을 먼저 글로 적는다</td></tr>
+      </tbody>
+    </table>
+
+    <div class="check-in"><strong>이해 확인</strong> — 지금 바로 체크리스트 표의 네 칸(목표·범위·사용할 도구·완료 기준)을 실제 메모 앱에 채워보세요. 완벽하지 않아도 됩니다. 다음 모듈(8-2. 꾸준히 학습을 이어가는 방법)로 넘어가기 전, 이 커리큘럼에서 가장 실전에 가까운 한 걸음입니다.</div>
+  </main>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://www.codeit.kr/articles/side-project-guide" target="_blank" rel="noopener">사이드 프로젝트 템플릿: 작게 시작해서 끝까지 완성하는 법</a><span class="src-domain">codeit.kr</span></li>
+          <li><a href="https://brunch.co.kr/@kimsojung/4" target="_blank" rel="noopener">3. 어떤 사이드 프로젝트를 할까?</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://www.waveon.io/blog/sideproject" target="_blank" rel="noopener">사이드 프로젝트란? 뜻, 장점, 유의사항, 시작 방법 총정리</a><span class="src-domain">waveon.io</span></li>
+          <li><a href="https://velog.io/@chris/10-tips-for-starting-and-creating-side-projects" target="_blank" rel="noopener">당신의 사이드 프로젝트를 위한 10가지 팁</a><span class="src-domain">velog.io</span></li>
+          <li><a href="https://www.theheekk.blog/blog/%ED%94%84%EB%A1%9C%EB%8D%95%ED%8A%B8-%EB%94%94%EC%9E%90%EC%9D%B4%EB%84%88-%EC%82%AC%EC%9D%B4%EB%93%9C-%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8" target="_blank" rel="noopener">프로덕트 디자이너가 사이드 프로젝트를 활용하는 방법</a><span class="src-domain">theheekk.blog</span></li>
+          <li><a href="https://www.youngju.dev/blog/career/side-project-that-compounds" target="_blank" rel="noopener">사이드 프로젝트를 커리어 자산으로 만드는 법 — 완성 기준, 공개 시점, 회고</a><span class="src-domain">youngju.dev</span></li>
+          <li><a href="https://velog.io/@sayunj/%EC%82%AC%EC%9D%B4%EB%93%9C%ED%94%84%EB%A1%9C%EC%A0%9D%ED%8A%B8-%EC%9D%B4%EC%95%BC%EA%B8%B0-1" target="_blank" rel="noopener">사이드프로젝트 이야기 #1 일정산출 팁</a><span class="src-domain">velog.io</span></li>
+          <li><a href="https://www.elancer.co.kr/blog/view?seq=103" target="_blank" rel="noopener">사이드 프로젝트, 퇴사하지 않고 꿈을 이루는 방법</a><span class="src-domain">elancer.co.kr</span></li>
+          <li><a href="https://fastcampus.co.kr/ent_online_nocode" target="_blank" rel="noopener">코딩 없이 나만의 7가지 서비스 만들기 with 노코드</a><span class="src-domain">fastcampus.co.kr</span></li>
+          <li><a href="https://ai-team.kr/ax-cases/?bmode=view&idx=171788165" target="_blank" rel="noopener">리서치 잘하는 사람의 상황별 AI 툴 5가지</a><span class="src-domain">ai-team.kr</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://medium.com/@fahimulhaq/keep-projects-small-scope-mvp-and-a-simple-to-do-plan-f0520209dbc2" target="_blank" rel="noopener">Keep projects small: Scope, MVP, and a simple to-do plan</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://www.thinslices.com/insights/build-the-right-first-version-by-mastering-mvp-scoping" target="_blank" rel="noopener">Build the right first version by mastering MVP scoping</a><span class="src-domain">thinslices.com</span></li>
+          <li><a href="https://www.upsilonit.com/blog/how-to-define-mvp-scope-tips-for-those-planning-development" target="_blank" rel="noopener">MVP Scoping: When and How to Do It Right</a><span class="src-domain">upsilonit.com</span></li>
+          <li><a href="https://www.oneseventech.com/blog/minimum-viable-product-scope" target="_blank" rel="noopener">5 Essential Steps to Define Minimum Viable Product (MVP) Scope</a><span class="src-domain">oneseventech.com</span></li>
+          <li><a href="https://lembergsolutions.com/blog/mvp-scope-how-define-your-minimum-viable-product-4-steps" target="_blank" rel="noopener">MVP Scope: How to Define Your Minimum Viable Product in 4 Steps</a><span class="src-domain">lembergsolutions.com</span></li>
+          <li><a href="https://www.bolderapps.com/blog-posts/mvp-scope-planning" target="_blank" rel="noopener">A Practical Guide to MVP Scope Planning</a><span class="src-domain">bolderapps.com</span></li>
+          <li><a href="https://clickup.com/blog/how-to-manage-side-projects/" target="_blank" rel="noopener">How to Manage Side Projects: 10 Tips for Success</a><span class="src-domain">clickup.com</span></li>
+          <li><a href="https://towardsdatascience.com/the-diy-path-to-ai-product-management-d3e26a030db6/" target="_blank" rel="noopener">The DIY Path to AI Product Management: Picking a Starter Project</a><span class="src-domain">towardsdatascience.com</span></li>
+          <li><a href="https://www.institutepm.com/knowledge-hub/ai-pm-side-projects" target="_blank" rel="noopener">AI Product Management Masterclass — AI PM Side Projects</a><span class="src-domain">institutepm.com</span></li>
+          <li><a href="https://pub.towardsai.net/how-i-built-a-personal-ai-research-assistant-using-llms-to-organize-my-daily-academic-work-e9c1176814dc" target="_blank" rel="noopener">How I Built a Personal AI Research Assistant Using LLMs</a><span class="src-domain">pub.towardsai.net</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 8-1 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

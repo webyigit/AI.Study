@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>7-4. 프라이버시와 보안 리스크</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="7-4">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 7 · 트렌드, 윤리, 리스크</p>
+    <p class="eyebrow">Module 7-4</p>
+    <h1 class="title">프라이버시와 보안 리스크</h1>
+    <p class="subtitle"><a class="term" href="#term-privacy">개인정보</a>가 프롬프트를 통해 새어나가는 대표적인 시나리오와, AI 에이전트가 늘어나면서 새로 생긴 <a class="term" href="#term-security">보안</a> 위협을 정리합니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">AI 도구가 업무에 자연스럽게 섞여 들어가면서, 프라이버시·보안 리스크도 예전과는 다른 방식으로 발생하고 있습니다. 4-6에서 "실무에서 확인해야 할 체크리스트"를 다뤘다면, 이 모듈에서는 그 체크리스트가 왜 필요한지를 실제 시나리오 두 가지로 짚어봅니다.</p>
+
+    <h2 id="sec-scenario1">1) 시나리오 — 고객 데이터를 공개 AI 도구에 붙여넣을 때</h2>
+    <p>가장 흔하면서도 눈에 잘 띄지 않는 리스크입니다. 업무 효율을 위해 고객 문의 내용, 계약서, 회의록 같은 텍스트를 공개된 AI 챗봇에 그대로 붙여넣어 요약·정리를 맡기는 경우가 많습니다. 문제는 이 과정에서 <strong>이름, 연락처, 계약 조건 같은 개인정보·기밀정보가 외부 서비스 서버로 그대로 전송된다</strong>는 점입니다.</p>
+    <div class="example-box"><strong>알려진 사례</strong> — 한 대형 전자회사에서는 직원들이 사내 소스코드를 최적화하거나 오류를 점검하기 위해 공개 챗봇에 그대로 붙여넣었다가, 기업 기밀이 외부 서비스에 입력 데이터로 남게 된 사례가 있었던 것으로 알려져 있습니다. 이후 해당 회사는 사내에서 공개 AI 챗봇 사용을 제한하는 정책을 도입했다고 보도되었습니다. 여러 설문조사에서도, 상당수의 직장인이 회사가 승인하지 않은 AI 도구에 업무 데이터를 입력해본 적이 있다고 답한 것으로 알려져 있습니다.</div>
+    <p>이런 리스크가 특히 위험한 이유는, 붙여넣는 사람 입장에서는 "그냥 요약을 부탁한 것"일 뿐 악의가 전혀 없다는 데 있습니다. 서비스에 따라 입력한 내용이 모델 개선을 위한 학습 데이터로 활용될 수 있다는 조항이 이용약관에 포함되어 있는 경우도 있어, 한 번 입력된 정보는 되돌리기 어려울 수 있습니다.</p>
+
+    <h2 id="sec-scenario2">2) 시나리오 — AI 에이전트와 <a class="term" href="#term-prompt-injection">프롬프트 인젝션</a></h2>
+    <p>7-1에서 다룬 에이전틱 AI처럼, AI가 이메일을 읽고 문서를 요약하고 외부 도구를 대신 실행해주는 경우가 늘어나면서 새로운 유형의 공격이 함께 등장했습니다. 바로 <a class="term" href="#term-prompt-injection">프롬프트 인젝션</a>입니다. 공격자가 이메일 본문이나 웹페이지, 첨부 문서 안에 사람 눈에는 잘 띄지 않는 "AI에게 내리는 명령"을 몰래 심어두면, AI 에이전트가 문서를 요약·처리하는 과정에서 그 숨겨진 명령까지 그대로 따라버리는 방식입니다.</p>
+    <div class="example-box"><strong>알려진 사례</strong> — 보안 연구자들이 실험을 통해, 이메일 본문에 숨겨둔 지시문이 AI 에이전트로 하여금 원래 요청(예: "부재중 회신 보내기")과 전혀 다른 행동(예: 민감한 내용을 제3자에게 전송)을 하게 만들 수 있음을 보여준 사례가 보고된 바 있습니다. 업계에서는 이런 <a class="term" href="#term-indirect-injection">간접 프롬프트 인젝션</a>을 생성형 AI 보안에서 가장 방어하기 어려운 취약점 중 하나로 꼽고 있습니다.</div>
+    <p>이 리스크가 특히 새로운 이유는, 과거의 보안 위협은 대개 "시스템의 코드 취약점"을 노렸다면, 프롬프트 인젝션은 <strong>AI가 자연어 명령을 지나치게 잘 따른다는 특성 자체</strong>를 노린다는 데 있습니다. 그래서 에이전트에게 어떤 도구를 어떤 권한 범위까지 자동으로 실행하게 허용할지를 설계 단계에서부터 신중하게 결정하는 것이 중요하다고 알려져 있습니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 600 170" width="600" height="170" role="img" aria-label="문서 안에 숨겨진 악성 명령이 AI 에이전트를 거쳐 의도치 않은 행동으로 이어지는 간접 프롬프트 인젝션 흐름 다이어그램">
+        <rect x="10" y="55" width="150" height="60" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="85" y="80" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--ink)">외부 문서·이메일</text>
+        <text x="85" y="98" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-faint)">(숨겨진 명령 포함)</text>
+        <line x1="160" y1="85" x2="215" y2="85" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow3)"/>
+
+        <rect x="220" y="55" width="150" height="60" rx="8" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="295" y="80" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--ink)">AI 에이전트</text>
+        <text x="295" y="98" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--ink-faint)">(문서 요약 중 명령 흡수)</text>
+        <line x1="370" y1="85" x2="425" y2="85" stroke="var(--ink-faint)" stroke-width="1.5" marker-end="url(#arrow3)"/>
+
+        <rect x="430" y="50" width="160" height="70" rx="8" fill="var(--accent-soft)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="510" y="76" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" fill="var(--accent-strong)" font-weight="600">의도치 않은 행동</text>
+        <text x="510" y="94" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="11" fill="var(--accent-strong)">(정보 유출, 권한 남용)</text>
+        <defs>
+          <marker id="arrow3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="var(--ink-faint)"/>
+          </marker>
+        </defs>
+      </svg>
+    </div>
+
+    <h2 id="sec-practical">3) 4-6 체크리스트를 다시 보기 — 개념적 리스크 인식</h2>
+    <p>4-6에서 다룬 실무 체크리스트(민감정보 마스킹, 사내 승인 도구 사용, 로그 확인 등)는 결국 이 두 시나리오를 막기 위한 구체적인 방법들이었습니다. 이 모듈에서 기억해야 할 것은 절차 자체보다 <strong>왜 그 절차가 필요한가</strong>입니다. "입력한 데이터는 내가 생각하는 것보다 더 오래, 더 넓게 남을 수 있다"는 것과 "AI 에이전트에게 자동 실행 권한을 줄수록, 숨겨진 명령에 노출될 표면적도 함께 넓어진다"는 것, 이 두 가지 인식이 실무 체크리스트를 실제로 지키게 만드는 동기가 됩니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>시나리오</th><th>무엇이 문제인가</th><th>핵심 인식</th></tr></thead>
+      <tbody>
+        <tr><td>고객 데이터 붙여넣기</td><td>민감정보가 외부 서버로 그대로 전송됨</td><td>입력한 데이터는 되돌리기 어려울 수 있음</td></tr>
+        <tr><td>프롬프트 인젝션</td><td>문서에 숨은 명령을 에이전트가 그대로 실행</td><td>자동 실행 권한이 넓을수록 노출 위험도 커짐</td></tr>
+      </tbody>
+    </table>
+    <p>두 시나리오 모두 "AI가 나빠서"가 아니라, "AI가 지시를 너무 잘 따르고, 입력된 정보를 구분 없이 처리한다"는 특성에서 비롯됩니다. 그래서 기술적 대책만큼이나, 무엇을 AI에게 맡기고 무엇을 맡기지 않을지에 대한 조직 차원의 원칙이 함께 필요합니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 최근 업무 중 AI 도구에 붙여넣었던 텍스트를 하나 떠올려보고, 그 안에 개인정보나 기밀정보가 섞여 있지는 않았는지 스스로 점검해보세요. 다음 모듈(7-5. 조직에 AI 도입할 때의 변화관리)에서는 이런 리스크 관리가 결국 기술이 아니라 조직과 사람의 문제로 이어진다는 것을 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-privacy">
+      <div class="glossary-entry-head"><h3>개인정보 (Personal Information)</h3><a class="back-link" href="#sec-scenario1">↑ 본문으로</a></div>
+      <p>이름, 연락처, 주민등록번호, 대화 내용 등 특정 개인을 식별하거나 식별할 수 있는 정보를 말합니다. AI 도구에 텍스트를 입력하는 과정에서 의도치 않게 이런 정보가 외부 서버로 전송되는 것이 이 모듈에서 다루는 핵심 리스크입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-security">
+      <div class="glossary-entry-head"><h3>보안 (Security)</h3><a class="back-link" href="#sec-scenario2">↑ 본문으로</a></div>
+      <p>시스템과 데이터를 무단 접근, 조작, 유출로부터 지키는 것을 말합니다. AI 시대의 보안은 전통적인 시스템 취약점뿐 아니라, AI가 자연어 명령을 얼마나 쉽게 따르는지에서 비롯되는 새로운 취약점(프롬프트 인젝션 등)까지 함께 고려해야 하는 영역으로 확장되고 있습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-prompt-injection">
+      <div class="glossary-entry-head"><h3>프롬프트 인젝션 (Prompt Injection)</h3><a class="back-link" href="#sec-scenario2">↑ 본문으로</a></div>
+      <p>공격자가 AI 모델에 악의적인 명령을 주입해, 원래 설계된 지침이나 사용자의 의도와 다른 동작을 하도록 유도하는 공격 기법입니다. OWASP의 LLM 애플리케이션 취약점 목록에서 가장 위험한 취약점 1순위로 꼽히기도 했습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-indirect-injection">
+      <div class="glossary-entry-head"><h3>간접 프롬프트 인젝션 (Indirect Prompt Injection)</h3><a class="back-link" href="#sec-scenario2">↑ 본문으로</a></div>
+      <p>공격자가 사용자 입력창에 직접 명령을 넣는 대신, AI가 나중에 읽게 될 이메일·웹페이지·문서 안에 명령을 몰래 심어두는 방식입니다. AI가 해당 문서를 요약·분석하는 과정에서 숨겨진 명령까지 실행해버릴 수 있어, 직접 인젝션보다 발견과 방어가 더 어렵다고 알려져 있습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-shadow-ai">
+      <div class="glossary-entry-head"><h3>섀도 AI (Shadow AI)</h3><a class="back-link" href="#sec-scenario1">↑ 본문으로</a></div>
+      <p>회사가 공식적으로 승인·관리하지 않는 AI 도구를 직원들이 개인적으로 업무에 사용하는 현상을 말합니다. 편의성 때문에 널리 퍼져 있지만, 회사가 데이터 흐름을 파악·통제할 수 없다는 점에서 프라이버시·보안 리스크를 키우는 주요 원인으로 지적됩니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-dlp">
+      <div class="glossary-entry-head"><h3>데이터 유출 방지 (DLP, Data Loss Prevention)</h3><a class="back-link" href="#sec-practical">↑ 본문으로</a></div>
+      <p>민감정보가 조직 외부로 새어나가지 않도록 탐지·차단하는 기술과 정책을 통칭합니다. AI 도구 사용이 늘면서, 직원이 붙여넣는 텍스트에 개인정보나 기밀정보가 포함되어 있는지 자동으로 탐지하는 것도 DLP의 중요한 적용 영역이 되고 있습니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://brunch.co.kr/@attorneysung/266" target="_blank" rel="noopener">생성형 AI 개인정보 프라이버시 침해 사례</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://v.daum.net/v/20251208130138923" target="_blank" rel="noopener">"인공지능은 많은 것을 알고 있다"…AI 통화 앱 '유출 사고'가 남긴 것</a><span class="src-domain">v.daum.net</span></li>
+          <li><a href="https://www.skyhighsecurity.com/ko/about/resources/intelligence-digest/bot-busted-up-ai-chatbots-alleged-data-leak.html" target="_blank" rel="noopener">봇 적발: AI 챗봇의 데이터 유출 혐의</a><span class="src-domain">skyhighsecurity.com</span></li>
+          <li><a href="https://m.boannews.com/html/detail.html?idx=119138" target="_blank" rel="noopener">챗GPT 등 '생성형 AI'에서 개인정보가 새는 구멍은?</a><span class="src-domain">boannews.com</span></li>
+          <li><a href="https://m.boannews.com/html/detail.html?idx=120550" target="_blank" rel="noopener">'챗GPT'사 오픈AI, 개인정보 유출 신고 위반으로 과태료 부과</a><span class="src-domain">boannews.com</span></li>
+          <li><a href="https://byline.network/2025/08/26-490/" target="_blank" rel="noopener">'프롬프트 인젝션·데이터 포이즈닝' AI 에이전트 보안 위협 부상</a><span class="src-domain">byline.network</span></li>
+          <li><a href="https://www.kaspersky.co.kr/resource-center/threats/prompt-injection" target="_blank" rel="noopener">프롬프트 인젝션이란? AI 조작 방식과 대응 방법</a><span class="src-domain">kaspersky.co.kr</span></li>
+          <li><a href="https://ko.wikipedia.org/wiki/%ED%94%84%EB%A1%AC%ED%94%84%ED%8A%B8_%EC%9D%B8%EC%A0%9D%EC%85%98" target="_blank" rel="noopener">프롬프트 인젝션 — 위키백과</a><span class="src-domain">ko.wikipedia.org</span></li>
+          <li><a href="https://www.skshieldus.com/security-insights/trends/ai-security-prompt-injection-guide" target="_blank" rel="noopener">AI 시대의 새로운 위협, 프롬프트 인젝션 완벽 가이드</a><span class="src-domain">skshieldus.com</span></li>
+          <li><a href="https://www.gttkorea.com/news/articleView.html?idxno=25445" target="_blank" rel="noopener">프롬프트 인젝션, 기업 AI 운영 환경의 치명적 취약점으로 떠올랐다</a><span class="src-domain">gttkorea.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.cshub.com/data/news/iotw-samsung-employees-allegedly-leak-proprietary-information-via-chatgpt" target="_blank" rel="noopener">Samsung employees allegedly leak data via ChatGPT</a><span class="src-domain">cshub.com</span></li>
+          <li><a href="https://www.techradar.com/news/samsung-bans-chatgpt-use-after-employee-leak" target="_blank" rel="noopener">Samsung bans ChatGPT use after employee leak</a><span class="src-domain">techradar.com</span></li>
+          <li><a href="https://www.syteca.com/en/blog/preventing-data-leakage-via-chatgpt" target="_blank" rel="noopener">ChatGPT Data Leaks: Risks & How to Prevent Them</a><span class="src-domain">syteca.com</span></li>
+          <li><a href="https://usecure.io/blog/genai-data-leakage-employees-pasting-confidential-data-into-ai-tools" target="_blank" rel="noopener">GenAI Data Leakage: Employees Pasting Confidential Data into AI Tools</a><span class="src-domain">usecure.io</span></li>
+          <li><a href="https://www.esecurityplanet.com/news/shadow-ai-chatgpt-dlp/" target="_blank" rel="noopener">77% of Employees Leak Data via ChatGPT, Report Finds</a><span class="src-domain">esecurityplanet.com</span></li>
+          <li><a href="https://www.eccu.edu/blog/prompt-injection-ai-cybersecurity-threat/" target="_blank" rel="noopener">Prompt Injection Attack Explained: AI Cybersecurity Threat</a><span class="src-domain">eccu.edu</span></li>
+          <li><a href="https://www.paloaltonetworks.com/cyberpedia/what-is-a-prompt-injection-attack" target="_blank" rel="noopener">What Is a Prompt Injection Attack? [Examples & Prevention]</a><span class="src-domain">paloaltonetworks.com</span></li>
+          <li><a href="https://www.crowdstrike.com/en-us/blog/indirect-prompt-injection-attacks-hidden-ai-risks/" target="_blank" rel="noopener">Indirect Prompt Injection Attacks: Hidden AI Risks</a><span class="src-domain">crowdstrike.com</span></li>
+          <li><a href="https://www.obsidiansecurity.com/blog/prompt-injection" target="_blank" rel="noopener">Prompt Injection Attacks on AI Agents: How to Detect and Prevent Them</a><span class="src-domain">obsidiansecurity.com</span></li>
+          <li><a href="https://intuitionlabs.ai/articles/prevent-chatgpt-proprietary-data-leaks" target="_blank" rel="noopener">ChatGPT Data Security: Preventing Proprietary Data Leaks</a><span class="src-domain">intuitionlabs.ai</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 7-4 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>

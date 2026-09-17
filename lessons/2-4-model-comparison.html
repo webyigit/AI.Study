@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2-4. GPT vs Claude vs Gemini vs 오픈소스 모델 비교</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body data-root="../" data-module-id="2-4">
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 2 · LLM 제대로 이해하기</p>
+    <p class="eyebrow">Module 2-4</p>
+    <h1 class="title">GPT vs Claude vs Gemini vs 오픈소스 모델 비교</h1>
+    <p class="subtitle">"어떤 모델이 제일 좋아요?"라는 질문 대신, 작업의 성격에 따라 모델 범주를 고르는 durable한 기준을 세웁니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">이 모듈은 "지금 이 순간 어느 모델이 제일 똑똑한가"를 알려주는 랭킹이 아닙니다. 랭킹은 몇 달만 지나도 바뀝니다. 대신 <a class="term" href="#term-model-comparison">모델비교</a>를 어떤 축으로 해야 오래 쓸 수 있는지, 그 <strong>기준 자체</strong>를 익힙니다.</p>
+
+    <h2 id="sec-intro">1) 왜 "최고의 모델"이라는 질문이 틀렸는가</h2>
+    <p>기획자나 실무자가 AI 도구를 고를 때 가장 자주 하는 실수는 "GPT-5가 Claude보다 벤치마크 점수가 높으니 GPT-5를 쓰자"처럼 특정 시점의 순위표로 결정하는 것입니다. 문제는 이 업계가 몇 주 단위로 새 모델이 나오는 속도전이라는 데 있습니다. 오늘의 1등이 다음 분기엔 3등이 되기도 하고, <a class="term" href="#term-benchmark">벤치마크</a> 점수 자체도 측정 방식에 따라 크게 흔들립니다.</p>
+    <p>그래서 이 모듈에서는 "지금 몇 점이다"가 아니라 <strong>어떤 작업에는 어떤 범주의 모델이 구조적으로 유리한가</strong>를 다룹니다. 모델 이름과 순위는 바뀌어도, "긴 문서를 신중하게 다루는 성향", "검색·멀티모달 통합이 강한 성향", "직접 운영해서 데이터를 안 내보내는 선택지" 같은 범주의 성격은 상대적으로 오래갑니다.</p>
+
+    <h2 id="sec-proprietary">2) 독점(proprietary) 모델 3사의 일반적 성향 — GPT · Claude · Gemini</h2>
+    <p>OpenAI의 GPT 시리즈, Anthropic의 Claude 시리즈, Google의 Gemini 시리즈는 모두 최상위권 성능을 놓고 경쟁하는 범용 LLM입니다. 세 회사 모두 계속 업데이트를 내놓기 때문에 "이번 달 기준 1등"은 자주 바뀌지만, 각 회사가 제품을 만들어온 방향성과 생태계 위치는 비교적 꾸준히 유지되는 경향이 있습니다. 아래는 정확한 벤치마크 순위가 아니라 <strong>일반적으로 관찰되는 성격</strong>입니다.</p>
+    <p><strong>GPT 시리즈(OpenAI)</strong>는 가장 폭넓은 생태계를 가지고 있다는 평가를 받습니다. 플러그인, 각종 서드파티 통합, 음성모드, 이미지 생성까지 한 제품 안에 다 갖춘 "만능 도구"에 가깝게 발전해 왔고, 개발자 생태계(API, 확장 도구)도 가장 넓게 퍼져 있습니다.</p>
+    <p><strong>Claude 시리즈(Anthropic)</strong>는 처음부터 안전성 연구를 중심에 두고 만들어진 회사의 모델답게, 긴 글을 신중하게 읽고 쓰는 능력과 차분하고 절제된 답변 태도로 자주 언급됩니다. 긴 문서·코드베이스를 붙여넣고 꼼꼼히 분석하게 하거나, 톤을 다듬어야 하는 글쓰기 작업에 강하다는 평가가 꾸준합니다.</p>
+    <p><strong>Gemini 시리즈(Google)</strong>는 이미지·동영상·텍스트를 함께 다루는 멀티모달 능력과, 구글 검색·Gmail·문서 도구·유튜브 등 구글 생태계와의 통합이 특징입니다. 최신 정보 검색이 필요하거나 구글 인프라(예: Google Cloud, Firebase) 위에서 개발 중이라면 자연스럽게 붙는 선택지입니다.</p>
+    <div class="example-box"><strong>예시</strong> — 사내 신제품 소개 자료의 문체를 다듬고 싶다면 Claude, 유튜브 트렌드나 최신 뉴스를 실시간으로 찾아 요약하고 싶다면 Gemini, 이미지 생성부터 음성 대화까지 여러 기능을 한 창에서 쓰고 싶다면 GPT가 자연스럽게 손이 가는 선택입니다. 이건 "더 똑똑해서"가 아니라 "그 작업에 맞게 설계돼 와서"에 가깝습니다.</div>
+
+    <h2 id="sec-opensource">3) <a class="term" href="#term-opensource">오픈소스 모델</a>이라는 세 번째 선택지</h2>
+    <p>GPT·Claude·Gemini는 모두 API 호출로만 쓸 수 있는 <strong>독점 모델</strong>입니다. 모델의 가중치(파라미터 값) 자체는 공개되지 않고, 회사의 서버에서만 돌아갑니다. 반면 Meta의 Llama, Mistral, Alibaba의 Qwen, DeepSeek 계열 같은 <strong>오픈소스(오픈웨이트) 모델</strong>은 모델 가중치 파일 자체를 내려받아 직접 실행할 수 있습니다.</p>
+    <p>이게 실무적으로 뜻하는 바는 세 가지입니다. 첫째, <strong>자체 서버(온프레미스)나 우리 회사의 클라우드 계정 안에서 직접 구동</strong>할 수 있습니다. 둘째, 우리 회사 데이터로 <a class="term" href="#term-finetuning">파인튜닝</a>(추가 학습)해서 특정 업무에 특화시킬 수 있습니다. 셋째, 특정 회사의 API에 의존하지 않기 때문에 그 회사가 가격을 올리거나 서비스를 중단해도 우리 서비스가 함께 멈추지 않습니다.</p>
+    <p>대신 트레이드오프도 명확합니다. 모델을 직접 서빙하려면 GPU 서버, 배포 파이프라인, 모니터링, 보안 패치 같은 <strong>운영 역량</strong>이 필요하고, 톱티어 독점 모델만큼의 절대 품질을 항상 따라잡는다는 보장은 없습니다. 특히 소규모 팀이라면 "공짜로 받은 모델"이 오히려 사람 손이 더 많이 드는 선택이 될 수 있습니다.</p>
+    <div class="example-box"><strong>예시</strong> — 고객센터 상담 로그처럼 외부로 절대 보내면 안 되는 데이터를 요약해야 하는 팀이 있다면, API 호출마다 데이터를 외부 서버로 보내는 독점 모델 대신 Llama나 Qwen 계열 오픈소스 모델을 사내 서버에 설치해 그 안에서만 처리하는 방식을 검토할 수 있습니다. 대신 그 서버를 누가 유지보수할지를 함께 결정해야 합니다.</div>
+
+    <h2 id="sec-cost">4) 비용 구조 — 종량제 API vs 자체 운영비</h2>
+    <p>독점 모델은 보통 <strong>토큰 단위 종량제</strong>입니다. 쓴 만큼만 내고, 초기 투자가 거의 없어서 소규모 실험이나 사용량이 적을 때는 압도적으로 저렴하고 편합니다. 다만 사용량이 폭증하면(대량 자동화, 고빈도 호출) 매달 청구서가 빠르게 커집니다.</p>
+    <p>오픈소스 모델은 반대로 <strong>고정비 구조</strong>에 가깝습니다. GPU 서버(직접 구매 또는 클라우드 임대) 비용, 이를 관리할 엔지니어 인건비가 먼저 들어갑니다. 대신 한번 인프라를 갖추면, 호출량이 아무리 늘어도 추가 과금 없이 처리할 수 있습니다. 그래서 "사용량이 적을 땐 API가 싸고, 사용량이 아주 많아지는 지점을 넘어서면 자체 운영이 더 싸진다"는 손익분기점이 존재합니다. 정확한 분기점은 모델 크기·트래픽·클라우드 단가에 따라 다르므로, 우리 팀의 예상 호출량으로 직접 계산해보는 것이 중요합니다.</p>
+
+    <h2 id="sec-privacy">5) 데이터 프라이버시 — 외부로 보낼 것인가, 안에 둘 것인가</h2>
+    <p>독점 모델 API를 호출한다는 건, 우리가 입력한 텍스트(계약서 초안, 고객 데이터, 미공개 기획안 등)가 그 회사의 서버로 전송되어 처리된다는 뜻입니다. 대부분의 기업용 API는 그 데이터를 모델 재학습에 쓰지 않는다는 약관을 제공하지만, 그래도 <strong>데이터가 물리적으로 회사 바깥의 제3자 인프라를 거친다</strong>는 사실 자체는 바뀌지 않습니다. 규제 산업(금융, 의료, 법률)이나 미공개 정보를 다루는 조직에서는 이 지점이 계약·법무 검토 대상이 됩니다.</p>
+    <p>반면 오픈소스 모델을 사내 서버에서 직접 돌리면, 데이터가 회사 경계를 벗어나지 않습니다. 오프라인 환경에서도 구동이 가능하다는 것도 특징입니다. 그래서 "품질은 조금 양보하더라도 데이터가 절대 밖으로 나가면 안 되는 업무"에서는 오픈소스 자체 호스팅이 진지한 선택지가 됩니다. 이 판단은 순전히 성능 문제가 아니라, 보안·컴플라이언스 팀과 함께 정할 문제입니다.</p>
+
+    <h2 id="sec-framework">6) 실무 선택 체크리스트 — 작업별로 무엇을 먼저 볼 것인가</h2>
+    <p>결국 "어떤 모델을 쓸까"는 하나의 정답이 아니라, 아래 다섯 가지 요인을 그 작업에 맞게 저울질하는 문제입니다.</p>
+    <p><strong>① 데이터 민감도</strong> — 외부로 나가면 안 되는 데이터인가? 그렇다면 자체 호스팅형 오픈소스가 먼저 검토 대상입니다.<br>
+    <strong>② 품질 요구 수준</strong> — 최종 산출물이 사람이 그대로 쓸 정도로 정교해야 하는가, 아니면 초안 수준이면 충분한가? 정교함이 최우선이면 최상위권 독점 모델이 여전히 유리한 경우가 많습니다.<br>
+    <strong>③ 비용·호출량</strong> — 하루 몇 번 쓰는 실험인가, 하루 수십만 건 처리하는 자동화인가? 후자로 갈수록 자체 운영의 경제성이 커집니다.<br>
+    <strong>④ 속도(지연시간)</strong> — 실시간 응답이 필요한 제품인가, 배치로 나중에 처리해도 되는 작업인가?<br>
+    <strong>⑤ 생태계 연동</strong> — 이미 구글 워크스페이스나 특정 클라우드에 깊이 물려 있다면, 그 생태계에 맞는 모델이 통합 비용을 크게 줄여줍니다.</p>
+    <div class="example-box"><strong>예시 — 네 가지 상황</strong><br>· 아이디어 브레인스토밍(가벼움, 데이터 민감도 낮음) → 아무 독점 모델이나 빠르게. 속도와 편의가 우선.<br>· 사내 계약서·인사 문서 분석(데이터 민감도 최상) → 오픈소스 자체 호스팅 또는 기업용 프라이빗 API 검토.<br>· 고객 문의 자동 분류 같은 대량·저비용 자동화(호출량 매우 많음) → 사용량이 임계점을 넘으면 자체 운영 오픈소스가 유리.<br>· 이미지가 섞인 자료 요약 같은 멀티모달 작업 → 멀티모달을 잘 지원하는 독점 모델 계열이 아직 유리한 경우가 많음.</div>
+    <p>중요한 건 이 다섯 가지 축을 스스로 점검하는 습관이지, 이 문서가 알려주는 "지금 이 모델이 최고다"라는 문장이 아닙니다. 그런 문장은 이 글을 쓰는 시점에도 이미 낡아가고 있습니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>기준</th><th>독점 모델(GPT·Claude·Gemini 등)</th><th>오픈소스 모델(Llama·Mistral·Qwen·DeepSeek 등)</th></tr></thead>
+      <tbody>
+        <tr><td>비용 구조</td><td>토큰 종량제, 초기 투자 거의 없음</td><td>서버·GPU·운영 인건비 등 고정비 선투자</td></tr>
+        <tr><td>데이터 프라이버시</td><td>데이터가 회사 밖 API 서버로 전송됨</td><td>사내/자체 인프라에서 처리, 외부로 안 나감</td></tr>
+        <tr><td>품질 관리</td><td>회사가 지속 업데이트, 별도 튜닝 어려움</td><td>직접 파인튜닝 가능, 품질은 팀 역량에 좌우</td></tr>
+        <tr><td>도입·운영 난이도</td><td>API 키 발급 후 즉시 사용 가능</td><td>인프라 구축·모니터링·보안까지 직접 관리</td></tr>
+      </tbody>
+    </table>
+    <p>모델 이름과 순위는 이 페이지를 다시 읽는 시점엔 달라져 있을 가능성이 높습니다. 하지만 "데이터는 어디로 가는가", "비용은 사용량에 따라 어떻게 변하는가", "품질을 어디까지 요구하는가"라는 세 가지 질문은 앞으로도 계속 쓸 수 있는 <a class="term" href="#term-model-comparison">모델비교</a>의 뼈대입니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 지금 맡고 있는 업무 하나를 골라, 위 다섯 가지 체크리스트(데이터 민감도·품질·비용·속도·생태계)로 어떤 모델 범주가 맞을지 스스로 판단해보세요. 다음 모듈(2-5. RAG, 검색 증강 생성이란 무엇인가)에서는 "모델 자체를 바꾸지 않고도 최신 정보나 사내 문서를 답변에 반영하는 방법"을 다룹니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-model-comparison">
+      <div class="glossary-entry-head"><h3>모델비교 (Model Comparison Framework)</h3><a class="back-link" href="#sec-intro">↑ 본문으로</a></div>
+      <p>여러 LLM 중 어떤 것을 쓸지 판단하는 체계적인 방법을 뜻합니다. 특정 시점의 벤치마크 순위 하나로 결정하는 방식은 모델 업데이트 주기가 몇 주 단위로 짧아진 지금은 오래가지 않습니다. 대신 데이터 민감도, 비용 구조, 품질 요구 수준, 응답 속도, 생태계 연동처럼 시간이 지나도 유효한 "판단 축"을 기준으로 비교하는 것이 모델비교 프레임워크의 핵심입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-benchmark">
+      <div class="glossary-entry-head"><h3>벤치마크 (Benchmark)</h3><a class="back-link" href="#sec-intro">↑ 본문으로</a></div>
+      <p>여러 모델의 성능을 같은 문제 세트로 채점해 비교하는 표준화된 시험입니다. 수학 문제, 코딩 문제, 상식 퀴즈 등을 모아 정답률을 %로 매기는 식입니다. 다만 실무에서 벤치마크 점수를 그대로 믿는 것은 위험합니다. ① 새 모델이 나올 때마다 순위가 몇 주 만에 뒤바뀌어 숫자가 금방 낡고, ② 채점 방식이나 문제 구성에 따라 같은 모델도 다른 점수가 나올 수 있으며, ③ 벤치마크 문제 자체가 모델 학습 데이터에 이미 섞여 들어가 점수가 실제 실력보다 부풀려지는 경우도 보고됩니다. 그래서 이 커리큘럼에서는 정확한 점수 대신, 시간이 지나도 잘 안 바뀌는 "성향·용도 적합성" 중심으로 모델을 설명합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-opensource">
+      <div class="glossary-entry-head"><h3>오픈소스 모델 / 오픈웨이트 (Open-source, Open-weight)</h3><a class="back-link" href="#sec-opensource">↑ 본문으로</a></div>
+      <p>모델의 학습된 가중치(파라미터 값) 파일 자체를 누구나 내려받아 자신의 서버에서 실행할 수 있게 공개한 모델입니다. Llama, Mistral, Qwen, DeepSeek 계열이 대표적입니다. API 호출 없이 직접 구동하므로 데이터를 외부로 보내지 않고, 원하는 대로 추가 학습(파인튜닝)해 업무에 맞게 커스터마이즈할 수 있습니다. 다만 서버·GPU 확보, 배포, 보안 유지 같은 운영 부담은 사용하는 조직이 직접 져야 합니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-finetuning">
+      <div class="glossary-entry-head"><h3>파인튜닝 (Fine-tuning)</h3><a class="back-link" href="#sec-opensource">↑ 본문으로</a></div>
+      <p>이미 대규모로 사전 학습된 모델을, 우리 회사의 데이터나 특정 업무 패턴으로 추가 학습시켜 그 분야에 더 잘 맞게 다듬는 과정입니다. 오픈소스 모델은 가중치 자체를 손에 쥐고 있기 때문에 파인튜닝이 비교적 자유롭지만, 대부분의 독점 모델은 회사가 제공하는 제한된 형태의 커스터마이징만 허용합니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://wikidocs.net/blog/@openwiki/22785/" target="_blank" rel="noopener">제미나이 vs 클로드, 뭘 써야 하나 (2026): 요금·성능·용도별 선택 기준 총정리</a><span class="src-domain">wikidocs.net</span></li>
+          <li><a href="https://sireal.co/blog/how-to/generation-ai/ai-productivity-tools-comparison-chatgpt-claude-gemini" target="_blank" rel="noopener">ChatGPT vs 클로드 vs 제미나이 완벽 비교 [2026] AI 생산성 도구 가이드</a><span class="src-domain">sireal.co</span></li>
+          <li><a href="https://www.kmjournal.net/news/articleView.html?idxno=8572" target="_blank" rel="noopener">챗GPT vs 제미나이 vs 클로드…업무 목적에 따라 갈리는 생성형 AI 전략</a><span class="src-domain">kmjournal.net</span></li>
+          <li><a href="https://vivoldi.com/blog/knowledge/gemini-chatgpt-claude-workflow-guide" target="_blank" rel="noopener">제미나이 vs ChatGPT vs 클로드 비교 및 활용법 가이드</a><span class="src-domain">vivoldi.com</span></li>
+          <li><a href="https://www.gyopool.com/blog/chatgpt-gemini-claude-comparison-2026" target="_blank" rel="noopener">챗GPT·제미나이·클로드 비교 (2026) - 나에게 맞는 AI 고르기</a><span class="src-domain">gyopool.com</span></li>
+          <li><a href="https://www.cio.com/article/3610076/%EC%86%8D%EB%8F%84-%EB%B9%84%EC%9A%A9%C2%B7%EB%82%9C%EC%9D%B4%EB%8F%84-%EC%A0%9C%EA%B0%81%EA%B0%81%C2%B7%C2%B7%C2%B7-%EA%B8%B0%EC%97%85%EC%9D%B4-llm%EC%9D%84-%EB%8F%84%EC%9E%85.html" target="_blank" rel="noopener">속도·비용·난이도 제각각… 기업이 LLM을 도입하는 7가지 방법</a><span class="src-domain">cio.com</span></li>
+          <li><a href="https://www.msap.ai/blog/open-source-llm/" target="_blank" rel="noopener">AI도 오픈소스가 답이다: 공개 LLM과 생태계</a><span class="src-domain">msap.ai</span></li>
+          <li><a href="https://www.oracle.com/kr/news/connect/introduce-generative-ai-to-company/" target="_blank" rel="noopener">생성형 AI를 우리 회사에 꼭 맞게 도입하는 방법 8가지</a><span class="src-domain">oracle.com</span></li>
+          <li><a href="https://www.aitimes.com/news/articleView.html?idxno=158785" target="_blank" rel="noopener">"기존 벤치마크 한계 도달"...새로운 LLM 평가 수단 속속 등장</a><span class="src-domain">aitimes.com</span></li>
+          <li><a href="https://devocean.sk.com/blog/techBoardDetail.do?ID=166716&boardType=techBlog" target="_blank" rel="noopener">LLM 성능, 어떻게 평가하는 것일까? (feat. lm-eval-harness)</a><span class="src-domain">devocean.sk.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.cosmicjs.com/blog/best-ai-for-developers-claude-vs-gpt-vs-gemini-technical-comparison-2026" target="_blank" rel="noopener">Claude vs GPT vs Gemini for Coding: Technical Comparison</a><span class="src-domain">cosmicjs.com</span></li>
+          <li><a href="https://ischoolonline.berkeley.edu/blog/chatgpt-vs-gemini-vs-claude-comparison/" target="_blank" rel="noopener">ChatGPT vs. Gemini vs. Claude: LLM Comparison Guide</a><span class="src-domain">ischoolonline.berkeley.edu</span></li>
+          <li><a href="https://intuitionlabs.ai/articles/claude-vs-chatgpt-vs-copilot-vs-gemini-enterprise-comparison" target="_blank" rel="noopener">Claude vs ChatGPT vs Copilot vs Gemini: Enterprise Guide</a><span class="src-domain">intuitionlabs.ai</span></li>
+          <li><a href="https://latitude.so/blog/open-source-vs-proprietary-llms-ethical-trade-offs" target="_blank" rel="noopener">Open-Source vs Proprietary LLMs: Ethical Trade-Offs</a><span class="src-domain">latitude.so</span></li>
+          <li><a href="https://www.civo.com/blog/open-source-vs-proprietary-llms" target="_blank" rel="noopener">Open Source vs. Proprietary LLMs</a><span class="src-domain">civo.com</span></li>
+          <li><a href="https://deepchecks.com/open-source-vs-proprietary-llms-when-to-use/" target="_blank" rel="noopener">Open Source Vs. Proprietary LLMs: When to Use</a><span class="src-domain">deepchecks.com</span></li>
+          <li><a href="https://www.datarobot.com/blog/how-to-choose-the-right-llm-for-your-use-case/" target="_blank" rel="noopener">How to Choose the Right LLM for Your Use Case</a><span class="src-domain">datarobot.com</span></li>
+          <li><a href="https://aws.amazon.com/blogs/machine-learning/beyond-vibes-how-to-properly-select-the-right-llm-for-the-right-task/" target="_blank" rel="noopener">Beyond Vibes: How to Properly Select the Right LLM for the Right Task</a><span class="src-domain">aws.amazon.com</span></li>
+          <li><a href="https://www.evidentlyai.com/llm-guide/llm-benchmarks" target="_blank" rel="noopener">30 LLM Evaluation Benchmarks and How They Work</a><span class="src-domain">evidentlyai.com</span></li>
+          <li><a href="https://www.geeky-gadgets.com/ai-leaderboard-flaws-explained/" target="_blank" rel="noopener">The AI Leaderboard Illusion: How AI Benchmarks Mislead Progress</a><span class="src-domain">geeky-gadgets.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <div id="pager"></div>
+
+  <footer class="page">AI.Study · Module 2-4 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+<script src="../assets/curriculum.js"></script>
+</body>
+</html>
