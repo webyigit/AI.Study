@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>1-1. AI·머신러닝·딥러닝·LLM은 뭐가 다른가</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #eef0e6;
+    --surface: #f8f9f2;
+    --surface-raised: #ffffff;
+    --ink: #1f2a20;
+    --ink-soft: #5b6759;
+    --ink-faint: #8a9484;
+    --line: #d7dac7;
+    --line-soft: #e3e5d6;
+    --accent: #2a6f68;
+    --accent-strong: #1d5750;
+    --accent-soft: #dcece8;
+    --accent-contrast: #f7fbfa;
+    --shadow: rgba(31, 42, 32, 0.10);
+    --font-display: 'Gowun Batang', 'Noto Serif KR', serif;
+    --font-body: 'IBM Plex Sans KR', 'Noto Sans KR', -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', 'Noto Sans Mono', monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+      --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+      --line: #333f34; --line-soft: #2a352b;
+      --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+      --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #161c17; --surface: #1d251e; --surface-raised: #232c24;
+    --ink: #e7ebe1; --ink-soft: #a3af9c; --ink-faint: #74806f;
+    --line: #333f34; --line-soft: #2a352b;
+    --accent: #5cb3a6; --accent-strong: #7cc4b8; --accent-soft: rgba(92,179,166,0.16);
+    --accent-contrast: #0d1410; --shadow: rgba(0,0,0,0.35);
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: var(--font-body); line-height: 1.7; -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 800px; margin: 0 auto; padding: 40px 28px 100px; }
+
+  header.page { border-bottom: 1px solid var(--line); padding-bottom: 24px; margin-bottom: 28px; }
+  .breadcrumb { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.06em; color: var(--ink-faint); margin: 0 0 10px; }
+  .breadcrumb a { color: var(--ink-faint); text-decoration: none; }
+  .breadcrumb a:hover { color: var(--accent-strong); }
+  .eyebrow { font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent-strong); margin: 0 0 10px; }
+  h1.title { font-family: var(--font-display); font-weight: 700; font-size: clamp(26px, 4vw, 36px); line-height: 1.3; margin: 0 0 12px; text-wrap: balance; }
+  .subtitle { max-width: 60ch; color: var(--ink-soft); font-size: 15.5px; margin: 0; }
+
+  .quicknav { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 20px; }
+  .quicknav a {
+    font-family: var(--font-mono); font-size: 12px; color: var(--accent-strong);
+    background: var(--accent-soft); border-radius: 999px; padding: 5px 12px; text-decoration: none;
+  }
+  .quicknav a:hover { background: var(--accent); color: var(--accent-contrast); }
+
+  main h2 { font-family: var(--font-display); font-size: 22px; font-weight: 700; margin: 40px 0 12px; text-wrap: balance; scroll-margin-top: 20px; }
+  main h2:first-of-type { margin-top: 0; }
+  main p { margin: 0 0 16px; font-size: 15.5px; }
+  main p.lead { font-size: 16.5px; color: var(--ink-soft); }
+
+  .term {
+    color: var(--accent-strong); text-decoration: underline; text-decoration-color: var(--line);
+    text-underline-offset: 3px; font-weight: 500; text-decoration-thickness: 1.5px;
+  }
+  .term:hover { text-decoration-color: var(--accent-strong); }
+
+  .diagram { margin: 28px 0; padding: 24px; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; display: flex; justify-content: center; }
+  .diagram svg { max-width: 100%; height: auto; }
+
+  .example-box {
+    background: var(--surface); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 16px 18px; margin: 18px 0; font-size: 14.5px; color: var(--ink-soft);
+  }
+  .example-box strong { color: var(--ink); }
+
+  table.summary { width: 100%; border-collapse: collapse; margin: 20px 0 28px; font-size: 14.5px; }
+  table.summary th, table.summary td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+  table.summary th { font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500; }
+  table.summary td:first-child { font-weight: 600; white-space: nowrap; }
+
+  .check-in {
+    background: var(--accent-soft); border-radius: 10px; padding: 18px 20px; margin: 32px 0 8px; font-size: 14.5px;
+  }
+  .check-in strong { color: var(--accent-strong); }
+
+  section.glossary { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .glossary-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 4px; }
+  .glossary-head h2 { margin: 0; }
+  .glossary-intro { color: var(--ink-soft); font-size: 14px; margin: 0 0 24px; }
+
+  .glossary-entry {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+    padding: 18px 20px; margin-bottom: 14px; scroll-margin-top: 20px;
+  }
+  .glossary-entry-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+  .glossary-entry h3 { font-family: var(--font-body); font-size: 16px; font-weight: 700; margin: 0 0 8px; }
+  .glossary-entry p { font-size: 14.5px; color: var(--ink-soft); margin: 0; }
+  .back-link { font-family: var(--font-mono); font-size: 11.5px; color: var(--ink-faint); text-decoration: none; white-space: nowrap; }
+  .back-link:hover { color: var(--accent-strong); }
+
+  section.refs { margin-top: 56px; padding-top: 32px; border-top: 1px solid var(--line); }
+  .refs-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-top: 20px; }
+  .refs-col h3 {
+    font-family: var(--font-mono); font-size: 12.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--accent-strong); margin: 0 0 14px; padding-bottom: 8px; border-bottom: 1px solid var(--line);
+  }
+  .refs-col ol { margin: 0; padding-left: 20px; font-size: 14px; }
+  .refs-col li { margin-bottom: 10px; }
+  .refs-col a { color: var(--ink); text-decoration: none; }
+  .refs-col a:hover { color: var(--accent-strong); text-decoration: underline; }
+  .refs-col .src-domain { display: block; font-family: var(--font-mono); font-size: 11px; color: var(--ink-faint); margin-top: 1px; }
+
+  @media (max-width: 640px) {
+    .refs-grid { grid-template-columns: 1fr; }
+  }
+
+  footer.page { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); font-size: 13px; color: var(--ink-faint); font-family: var(--font-mono); }
+  footer.page a { color: var(--ink-faint); }
+</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="page">
+    <p class="breadcrumb"><a href="https://github.com/webyigit/AI.Study">AI.Study</a> / Phase 1 · AI 기초 체력 다지기</p>
+    <p class="eyebrow">Module 1-1</p>
+    <h1 class="title">AI, 머신러닝, 딥러닝, LLM은 뭐가 다른가</h1>
+    <p class="subtitle">네 단어가 각각 다른 것을 가리키는 게 아니라, 큰 개념 안에 작은 개념이 포함되는 관계라는 것부터 이해합니다.</p>
+    <nav class="quicknav">
+      <a href="#body">본문</a>
+      <a href="#summary-table">한눈에 정리</a>
+      <a href="#glossary">용어 상세</a>
+      <a href="#refs">참고문헌</a>
+    </nav>
+  </header>
+
+  <main id="body">
+    <p class="lead">이 네 단어(<a class="term" href="#term-ai">AI</a> · <a class="term" href="#term-ml">머신러닝</a> · <a class="term" href="#term-dl">딥러닝</a> · <a class="term" href="#term-llm">LLM</a>)는 러시아 인형(마트료시카)처럼, 큰 개념 안에 더 작은 개념이 차례로 포함되는 <strong>계층 관계</strong>입니다.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 460 300" width="460" height="300" role="img" aria-label="AI, 머신러닝, 딥러닝, LLM이 서로 포함되는 계층 구조 다이어그램">
+        <circle cx="230" cy="150" r="140" fill="var(--surface-raised)" stroke="var(--line)" stroke-width="1.5"/>
+        <circle cx="230" cy="165" r="105" fill="var(--paper)" stroke="var(--line)" stroke-width="1.5"/>
+        <circle cx="230" cy="180" r="70" fill="var(--accent-soft)" stroke="var(--line)" stroke-width="1.5"/>
+        <circle cx="230" cy="195" r="36" fill="var(--accent)" stroke="var(--accent-strong)" stroke-width="1.5"/>
+        <text x="230" y="42" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="14" font-weight="600" fill="var(--ink)">AI (인공지능)</text>
+        <text x="230" y="82" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="600" fill="var(--ink-soft)">머신러닝</text>
+        <text x="230" y="122" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="12.5" font-weight="600" fill="var(--accent-strong)">딥러닝</text>
+        <text x="230" y="199" text-anchor="middle" font-family="'IBM Plex Sans KR', sans-serif" font-size="13" font-weight="700" fill="var(--accent-contrast)">LLM</text>
+      </svg>
+    </div>
+
+    <h2 id="sec-ai">1) <a class="term" href="#term-ai">AI (인공지능)</a> — 가장 큰 목표</h2>
+    <p>"기계가 사람처럼 똑똑한 행동을 하게 만든다"는 <strong>목표 자체</strong>를 부르는 이름입니다. 방법은 정해져 있지 않습니다.</p>
+    <div class="example-box"><strong>예시</strong> — "실내 온도가 26도 넘으면 에어컨을 켠다"는 규칙을 사람이 직접 코드로 짜 넣는 <a class="term" href="#term-rule-based">규칙 기반(rule-based) 방식</a>도, 넓게 보면 AI입니다. 사람이 모든 규칙을 손으로 짠다는 게 핵심입니다.</div>
+
+    <h2 id="sec-ml">2) <a class="term" href="#term-ml">머신러닝</a> — AI를 만드는 방법 중 하나</h2>
+    <p>세상 모든 규칙을 사람이 다 손으로 짤 수는 없습니다. "어떤 사용자가 언제 에어컨을 켤지"는 규칙이 아니라 패턴에 가깝기 때문입니다. 그래서 규칙을 사람이 코딩하는 대신, <strong>데이터를 잔뜩 보여주고 기계가 스스로 패턴을 찾게</strong> 하는 방법이 등장했습니다.</p>
+    <div class="example-box"><strong>예시</strong> — "지난 3개월 사용 기록"을 학습시키면, 모델이 "이 사용자는 보통 저녁 7시에 실내온도 24도를 선호하는구나"라는 패턴을 스스로 알아냅니다. 사람이 그 규칙을 직접 짠 게 아니라 데이터에서 뽑아낸 것입니다.</div>
+    <p>즉, <strong>머신러닝 = AI라는 목표를 이루는 방법 중, "데이터에서 스스로 학습하는" 방식</strong>입니다.</p>
+
+    <h2 id="sec-dl">3) <a class="term" href="#term-dl">딥러닝</a> — 머신러닝의 한 방식</h2>
+    <p>머신러닝 안에도 여러 방법이 있습니다. 그중에서 인간 뇌의 뉴런 구조를 흉내 낸 <a class="term" href="#term-neural-network">신경망(neural network)</a>을 아주 여러 층(layer) 쌓아서 학습시키는 방법이 딥러닝입니다. "딥(deep)"이 바로 이 "층이 깊다"는 뜻입니다.</p>
+    <p>층이 얕으면 단순한 패턴만 찾을 수 있는데, 층을 깊게 쌓으니 이미지 속 얼굴을 알아보거나 사람 말을 이해하는 것처럼 훨씬 복잡한 패턴도 학습할 수 있게 됐습니다. 2010년대 이후 AI가 갑자기 좋아진 것도 딥러닝 덕분입니다.</p>
+
+    <h2 id="sec-llm">4) <a class="term" href="#term-llm">LLM</a> (거대 언어모델) — 딥러닝의 한 종류</h2>
+    <p>딥러닝 모델 중에서, 엄청나게 많은 텍스트 데이터(책, 웹페이지, 대화 등)로 학습해서 사람의 언어를 이해하고 생성하는 데 특화된 초대형 모델이 LLM(Large Language Model)입니다. ChatGPT나 Claude가 바로 이것입니다.</p>
+    <p>핵심은 "Large(거대)"인데, <a class="term" href="#term-parameter">파라미터</a> 수가 수십억~수천억 개에 달할 정도로 크기 때문에, 단순 패턴 인식을 넘어서 대화·추론·요약처럼 사람과 비슷한 언어 능력을 보이는 것입니다.</p>
+
+    <h2 id="summary-table">정리하면</h2>
+    <table class="summary">
+      <thead><tr><th>개념</th><th>한 줄 정의</th></tr></thead>
+      <tbody>
+        <tr><td><a class="term" href="#term-ai">AI</a></td><td>기계가 똑똑하게 행동하게 만드는 목표 전체</td></tr>
+        <tr><td><a class="term" href="#term-ml">머신러닝</a></td><td>규칙을 코딩하지 않고, 데이터에서 패턴을 스스로 배우는 방법</td></tr>
+        <tr><td><a class="term" href="#term-dl">딥러닝</a></td><td>머신러닝 중에서 신경망을 깊게 쌓는 방법</td></tr>
+        <tr><td><a class="term" href="#term-llm">LLM</a></td><td>딥러닝 중에서, 텍스트로 학습해 언어를 다루는 초대형 모델</td></tr>
+      </tbody>
+    </table>
+    <p>"AI 쓴다"는 표현은 사실 너무 넓은 말입니다. 우리가 실무에서 쓰는 ChatGPT·Claude 같은 도구는 정확히는 "딥러닝 기반 LLM"이라고 콕 집어 말할 수 있습니다.</p>
+
+    <div class="check-in"><strong>이해 확인</strong> — 위 표를 보고 "머신러닝과 딥러닝의 차이"를 스스로 한 문장으로 말해보세요. 다음 모듈(1-2. LLM은 어떻게 다음 단어를 예측하는가)로 넘어가기 전 좋은 점검이 됩니다.</div>
+  </main>
+
+  <section class="glossary" id="glossary">
+    <div class="glossary-head"><h2>용어 상세</h2></div>
+    <p class="glossary-intro">본문에서 밑줄 친 용어를 클릭하면 여기로 이동합니다. 각 항목의 "본문으로" 링크로 원래 위치로 돌아갈 수 있습니다.</p>
+
+    <div class="glossary-entry" id="term-ai">
+      <div class="glossary-entry-head"><h3>AI (인공지능, Artificial Intelligence)</h3><a class="back-link" href="#sec-ai">↑ 본문으로</a></div>
+      <p>기계가 인간처럼 추론하고, 학습하고, 문제를 해결하도록 만드는 것을 목표로 하는 컴퓨터과학의 한 분야 전체를 가리키는 가장 넓은 용어입니다. 1950년대부터 쓰인 오래된 개념이며, 규칙 기반 시스템부터 최신 LLM까지 전부 AI의 하위 범주에 속합니다. "AI를 쓴다"는 말은 방법을 특정하지 않는 가장 느슨한 표현입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-ml">
+      <div class="glossary-entry-head"><h3>머신러닝 (Machine Learning)</h3><a class="back-link" href="#sec-ml">↑ 본문으로</a></div>
+      <p>사람이 규칙을 일일이 코딩하는 대신, 데이터를 통해 컴퓨터가 스스로 패턴(함수)을 찾아내도록 하는 AI의 하위 분야입니다. 의사결정나무, 회귀분석, 서포트벡터머신 등 다양한 방법론이 있으며, 딥러닝은 그중 신경망을 쓰는 한 갈래입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-dl">
+      <div class="glossary-entry-head"><h3>딥러닝 (Deep Learning)</h3><a class="back-link" href="#sec-dl">↑ 본문으로</a></div>
+      <p>여러 층(layer)의 <a class="term" href="#term-neural-network">인공신경망</a>을 쌓아 학습하는 머신러닝의 한 방식입니다. 층이 깊을수록 더 복잡하고 추상적인 패턴(예: 이미지 속 사물, 문장의 의미)을 스스로 추출할 수 있어, 2012년 이후 이미지 인식·음성 인식·자연어처리 등에서 성능이 크게 도약했습니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-llm">
+      <div class="glossary-entry-head"><h3>LLM (거대 언어모델, Large Language Model)</h3><a class="back-link" href="#sec-llm">↑ 본문으로</a></div>
+      <p>방대한 텍스트 데이터로 학습되어 언어를 이해·생성하는 데 특화된 대규모 딥러닝 모델입니다. 대부분 <strong>트랜스포머(Transformer)</strong> 구조를 기반으로 하며, 파라미터 수가 수십억~수천억 개에 달합니다. GPT, Claude, Gemini 등이 대표적인 LLM입니다. (Transformer 구조는 Phase 2에서 다룹니다.)</p>
+    </div>
+
+    <div class="glossary-entry" id="term-neural-network">
+      <div class="glossary-entry-head"><h3>신경망 (Neural Network)</h3><a class="back-link" href="#sec-dl">↑ 본문으로</a></div>
+      <p>인간 뇌의 뉴런이 서로 신호를 주고받는 구조를 단순화해서 흉내 낸 계산 모델입니다. 입력값이 여러 층의 "노드"를 거치며 가중치가 곱해지고 더해지는 계산을 반복해 최종 출력을 만들어냅니다. 딥러닝은 이 신경망을 깊게(여러 층) 쌓은 것입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-parameter">
+      <div class="glossary-entry-head"><h3>파라미터 (Parameter)</h3><a class="back-link" href="#sec-llm">↑ 본문으로</a></div>
+      <p>신경망 내부에서 학습을 통해 값이 조정되는 "가중치"들을 말합니다. 모델이 데이터를 보고 배운 내용이 이 숫자들 안에 저장된다고 생각하면 됩니다. 파라미터 수가 많을수록 더 복잡한 패턴을 담을 수 있지만, 그만큼 학습·운영 비용도 커집니다. LLM은 이 파라미터가 수십억~수천억 개 규모입니다.</p>
+    </div>
+
+    <div class="glossary-entry" id="term-rule-based">
+      <div class="glossary-entry-head"><h3>규칙 기반 방식 (Rule-based)</h3><a class="back-link" href="#sec-ai">↑ 본문으로</a></div>
+      <p>"조건 A이면 행동 B를 하라"처럼, 사람이 논리 규칙을 직접 코드로 작성해 넣는 초기 AI 방식입니다. 예측 가능하고 설명하기 쉽지만, 규칙으로 다 표현할 수 없는 복잡한 패턴(예: 사용자 취향)에는 한계가 있어 머신러닝으로 대체되는 경우가 많습니다.</p>
+    </div>
+  </section>
+
+  <section class="refs" id="refs">
+    <h2>참고문헌</h2>
+    <p class="glossary-intro">이 모듈을 더 깊이 파고들고 싶을 때 참고할 수 있는 자료입니다.</p>
+    <div class="refs-grid">
+      <div class="refs-col">
+        <h3>국내</h3>
+        <ol>
+          <li><a href="https://brunch.co.kr/@230kimi/17" target="_blank" rel="noopener">AI 개념 정리: 인공지능, 머신러닝, 딥러닝, LLM</a><span class="src-domain">brunch.co.kr</span></li>
+          <li><a href="https://www.elancer.co.kr/blog/detail/763" target="_blank" rel="noopener">딥러닝이란? 머신러닝과의 차이부터 완벽 이해하기</a><span class="src-domain">elancer.co.kr</span></li>
+          <li><a href="https://www.sumologic.com/ko/blog/machine-learning-deep-learning" target="_blank" rel="noopener">인공지능, 머신러닝, 딥러닝, 생성형 AI의 차이는 무엇인가?</a><span class="src-domain">sumologic.com</span></li>
+          <li><a href="https://wikidocs.net/276684" target="_blank" rel="noopener">머신러닝, 딥러닝, LLM의 개념 — 생성AI 5단계 활용법</a><span class="src-domain">wikidocs.net</span></li>
+          <li><a href="https://blog-ko.superb-ai.com/artificial-intelligence-llm-vs-gpt-whats-the-difference/" target="_blank" rel="noopener">인공지능, LLM과 GPT는 어떻게 다를까?</a><span class="src-domain">blog-ko.superb-ai.com</span></li>
+          <li><a href="https://spartaclub.kr/blog/2024-ai-llm" target="_blank" rel="noopener">LLM이 무엇일까? LLM부터 머신러닝까지 한 번에 맛보기</a><span class="src-domain">spartaclub.kr</span></li>
+          <li><a href="https://www.samsungsds.com/kr/insights/1232588_4627.html" target="_blank" rel="noopener">알기쉬운 딥러닝 — 딥러닝과 빅데이터란 무엇인가?</a><span class="src-domain">samsungsds.com</span></li>
+          <li><a href="https://www.samsungsds.com/kr/insights/future_of_generative_ai_1.html" target="_blank" rel="noopener">ChatGPT를 넘어, 생성형 AI의 미래 1편</a><span class="src-domain">samsungsds.com</span></li>
+          <li><a href="https://hongong.hanbit.co.kr/ai-%EB%AC%B4%EC%97%87%EC%9D%B8%EA%B0%80-%EC%9D%B8%EA%B3%B5%EC%A7%80%EB%8A%A5-%EB%A8%B8%EC%8B%A0%EB%9F%AC%EB%8B%9D-%EB%94%A5%EB%9F%AC%EB%8B%9D-%EC%B0%A8%EC%9D%B4%EC%A0%90-%EC%B4%9D%EC%A0%95%EB%A6%AC/" target="_blank" rel="noopener">[AI란 무엇인가] 인공지능 머신러닝 딥러닝 차이점 총정리</a><span class="src-domain">hongong.hanbit.co.kr</span></li>
+          <li><a href="https://cloud.google.com/discover/deep-learning-vs-machine-learning?hl=ko" target="_blank" rel="noopener">딥러닝, 머신러닝, 인공지능의 차이점은 무엇인가요?</a><span class="src-domain">cloud.google.com</span></li>
+        </ol>
+      </div>
+      <div class="refs-col">
+        <h3>해외</h3>
+        <ol>
+          <li><a href="https://www.ibm.com/think/topics/ai-vs-machine-learning-vs-deep-learning-vs-neural-networks" target="_blank" rel="noopener">AI vs. Machine Learning vs. Deep Learning vs. Neural Networks</a><span class="src-domain">ibm.com</span></li>
+          <li><a href="https://www.geeksforgeeks.org/artificial-intelligence/artificial-intelligence-vs-machine-learning-vs-deep-learning/" target="_blank" rel="noopener">Artificial Intelligence vs Machine Learning vs Deep Learning</a><span class="src-domain">geeksforgeeks.org</span></li>
+          <li><a href="https://toloka.ai/blog/difference-between-ai-ml-llm-and-generative-ai/" target="_blank" rel="noopener">Difference between AI, ML, LLM, and generative AI</a><span class="src-domain">toloka.ai</span></li>
+          <li><a href="https://www.cloud4c.com/blogs/genai-vs-machine-learning-vs-deep-learning-vs-llms" target="_blank" rel="noopener">Machine Learning vs Deep Learning vs LLMs vs GenAI</a><span class="src-domain">cloud4c.com</span></li>
+          <li><a href="https://galileo.ai/blog/ai-vs-ml-llm-vs-generative-ai" target="_blank" rel="noopener">AI vs ML vs LLM vs Generative AI vs Agentic AI</a><span class="src-domain">galileo.ai</span></li>
+          <li><a href="https://www.neuralconcept.com/post/ml-vs-llm-key-differences-applications-engineering-impact" target="_blank" rel="noopener">Machine Learning vs LLM: Differences, Applications & Impact</a><span class="src-domain">neuralconcept.com</span></li>
+          <li><a href="https://medium.com/@meenn396/differences-between-llm-deep-learning-machine-learning-and-ai-3c7eb1c87ef8" target="_blank" rel="noopener">Differences between LLM, Deep learning, Machine learning, and AI</a><span class="src-domain">medium.com</span></li>
+          <li><a href="https://www.sumologic.com/blog/machine-learning-deep-learning" target="_blank" rel="noopener">Discover the differences between AI, ML and deep learning</a><span class="src-domain">sumologic.com</span></li>
+          <li><a href="https://www.iese.fraunhofer.de/en/trend/artificial-intelligence/deep-learning.html" target="_blank" rel="noopener">Deep Learning (DL) and Large Language Model (LLM)</a><span class="src-domain">iese.fraunhofer.de</span></li>
+          <li><a href="https://www.openmindt.com/knowledge/ai-vs-llm-whats-the-difference-and-how-do-they-work/" target="_blank" rel="noopener">AI vs LLM: What's the Difference, and How Do They Work?</a><span class="src-domain">openmindt.com</span></li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer class="page">AI.Study · Module 1-1 · <a href="https://github.com/webyigit/AI.Study">github.com/webyigit/AI.Study</a></footer>
+</div>
+</body>
+</html>
